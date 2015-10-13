@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # encoding: utf-8
 
 import sys
@@ -9,8 +9,8 @@ import json
 
 """import_to_sql.py: Imports the Horoscope database into a SQLite"""
 
-__author__      = "Project Zodiacy"
-__copyright__   = "Copyright 2015, Project Zodiacy"
+__author__ = "Project Zodiacy"
+__copyright__ = "Copyright 2015, Project Zodiacy"
 
 
 parser = argparse.ArgumentParser(description="Awesome SQLite importer")
