@@ -5,7 +5,7 @@ from datetime import date, datetime, timedelta
 from os.path import join
 from os import makedirs
 
-startDate = date(2011, 10, 10)
+startDate = date(2007, 08, 01)
 endDate = datetime.now()
 endDate = date(endDate.year, endDate.month, endDate.day)
 zodiaSigns = [
@@ -38,5 +38,5 @@ for sign in zodiaSigns:
     with open(join(downloadFolder, sign), "w") as out:
         for res in perdelta(startDate, endDate, timedelta(days=1)):
             res = "%s%s%s" % (res.year, res.month, res.day)
-            outHoro = "https://celebrity.yahoo.com/horoscope/%s/overview-daily-%s.html" % (sign, res)
+            outHoro = "http://www.tarot.com/daily-horoscope/%s/%s" % (sign, res)
             print(outHoro, file=out)
