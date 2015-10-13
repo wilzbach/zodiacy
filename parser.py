@@ -1,20 +1,8 @@
-#!/usr/bin/env python
-# encoding: utf-8
+import re
 
-import lxml.html
-from lxml.cssselect import CSSSelector
-
-selector = CSSSelector('div.daily')
-
-
-def parseHoroscope(eFile):
-    tree = lxml.html.fromstring(eFile)
-    selection = selector(tree)
-    if len(selection) >= 1:
-        parent = selection[0]
-        if len(parent) >= 2:
-            hText = parent[1]
-            hText.remove(hText[0])
-            print(hText.text_content())
-    else:
-        print("NOT FOUND")
+def parse_horoscope(file):
+    pattern = '<div class="daily overview">\s+<h3 class="title">Daily Overview</h3>\s+<div class="desc">(.*) <a'
+    regex = re.compile(pattern)
+    text = ''.join(file.readlines())
+    result = regex.search(text)
+    return result.group(1) if result is not None else None
