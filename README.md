@@ -1,32 +1,26 @@
 Project Zodiacy
 ===============
 
-Requirements
-------------
-
-* python3
-* *nix system
-* perl
 
 
-1) Generate horoscope URLs
-----------------------------
-
-```
-./generate_urls -o urls
-```
-
-
-2) Fetch horoscope data
+1) Fetch horoscope data
 -----------------------
-
+First you need to download the horoscope data:
 ```
-cat urls | xargs wget --wait=10 --random-wait -q -O - | perl -nle 'print $1 if /window.horoscopes = (.*);/m' > zodiacs.json
+dseq 01.01.2007 $(date +%d.%m.%Y) -i %d.%m.%Y | parallel --no-notice -j50 curl -s http://www.tarot.com/daily-horoscope/aquarius/{} | perl -nle 'print $1 if /window.horoscopes = (.*);/m' > zodiacs.json
 ```
-
-3) Import horoscopes into database
-----------------------------------
-
+Which you can then import into an sqlite database:
 ```
 ./import_to_sql.py -i zodiacs.json -s zodiac.sqlite
 ```
+
+Requirements
+------------
+
+* bash
+* coreutils
+* dateutils
+* GNU parallel
+* perl
+* python3
+* sqlite3
