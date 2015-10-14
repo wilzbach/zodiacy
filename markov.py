@@ -15,7 +15,7 @@ def compute_transitions(tokens_list, order=1):
         tokens = word_tokenize(tokens_entry[0])
         last_tokens = [_start_symbol]*order
         # count the occurences of "present | past"
-        for token in chain(tokens[1:], [_end_symbol]):
+        for token in chain(tokens, [_end_symbol]):
             distinct_tokens.add(token) 
             past = tuple(last_tokens)
             suffixes = [past[i:] for i in range(len(past))]
