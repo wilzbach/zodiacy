@@ -54,5 +54,5 @@ if __name__ == '__main__':
             print('Not enough horoscopes for the given keyword', sys.stderr)
             sys.exit(1)
         corpuses = get_corpuses(conn.cursor(), zodiac_sign=None, keyword='enthusiasm')
-        transitions = markov.compute_transitions(corpuses, args.order)
-        print(len(transitions))
+        transitions = markov.compute_transitions(corpuses, order=args.order)
+        print(' '.join(markov.generate_text(transitions, 5, order=args.order)))

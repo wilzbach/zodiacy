@@ -1,6 +1,5 @@
 from nltk import word_tokenize, pos_tag
 from itertools import chain
-import numpy
 import random
 from copy import deepcopy
 
@@ -69,14 +68,18 @@ def _weighted_choice(item_probabilities, value_to_probability=lambda x:x, probab
         if summed_probability > random_value:
             return item
         
-def generate_text(transitions, start_symbol, count, symbol_to_token=lambda x:x, precondition=lambda x: True, order=1):
-    last_symbols = [start_symbol]
+def generate_text(transitions, count, order=1):
+    print(transitions[('^',)])
+    last_tokens = ['^']
     generated_tokens = []
-    for i in range(1, count):
-        new_symbol = generate_next_token(transitions, tuple(last_symbols[-i if i < order else -order:]), precondition)
-        last_symbols = last_symbols[1 if len(last_symbols) == order else 0:]
-        last_symbols.append(new_symbol)
-        generated_tokens.append(symbol_to_token(new_symbol))
+    i = 0
+    while last_tokens[-1] != '$':
+        print(last_tokens)
+        new_token = generate_next_token(transitions, tuple(last_tokens[-i if i < order else -order:]))
+        i+=1
+        last_tokens = last_tokens[1 if len(last_tokens) == order else 0:]
+        last_tokens.append(new_token)
+        generated_tokens.append(new_token)
 
     return generated_tokens
 
