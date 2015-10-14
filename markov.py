@@ -1,18 +1,22 @@
-from nltk import word_tokenize, pos_tag
-from itertools import chain
-import random
 from copy import deepcopy
+from itertools import chain
+from nltk import word_tokenize, pos_tag
+import random
+
+_start_symbol = '^'
+_end_symbol = '$'
 
 def compute_transitions(tokens_list, order=1): 
     transitions = dict()
     distinct_tokens = set()
 
     for tokens_entry in tokens_list:
+        if tokens_entry[0] is None: continue
         tokens = word_tokenize(tokens_entry[0])
-        last_tokens = ['^']
+        last_tokens = [_start_symbol]*order
         # count the occurences of "present | past"
-        for token in chain(tokens[1:], ['$']):
-            distinct_tokens.add(token)
+        for token in chain(tokens[1:], [_end_symbol]):
+            distinct_tokens.add(token) 
             past = tuple(last_tokens)
             suffixes = [past[i:] for i in range(len(past))]
             for suffix in suffixes:
@@ -24,7 +28,7 @@ def compute_transitions(tokens_list, order=1):
                     else:
                         transitions[suffix][token] += 1
 
-            last_tokens = last_tokens[1 if len(last_tokens) == order else 0:]
+            last_tokens = last_tokens[1:]
             last_tokens.append(token)
 
     # compute probabilities
@@ -69,19 +73,15 @@ def _weighted_choice(item_probabilities, value_to_probability=lambda x:x, probab
             return item
         
 def generate_text(transitions, count, order=1):
-    print(transitions[('^',)])
-    last_tokens = ['^']
+    last_tokens = [_start_symbol]*order
     generated_tokens = []
-    i = 0
-    while last_tokens[-1] != '$':
-        print(last_tokens)
-        new_token = generate_next_token(transitions, tuple(last_tokens[-i if i < order else -order:]))
-        i+=1
-        last_tokens = last_tokens[1 if len(last_tokens) == order else 0:]
+    while last_tokens[-1] != _end_symbol:
+        new_token = generate_next_token(transitions, tuple(last_tokens))
+        last_tokens = last_tokens[1:]
         last_tokens.append(new_token)
         generated_tokens.append(new_token)
 
-    return generated_tokens
+    return generated_tokens[:-1]
 
 def generate_next_token(transitions, past, precondition=lambda x: True):
     for key in [past[i:] for i in range(len(past))]:
