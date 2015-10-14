@@ -1,16 +1,20 @@
 from nltk import word_tokenize, pos_tag
+from itertools import chain
 import numpy
 import random
 from copy import deepcopy
 
-def compute_transitions(tokens, precondition=lambda token, last_token: True, order=1): 
-    last_tokens = [tokens[0]]
+def compute_transitions(tokens_list, order=1): 
     transitions = dict()
+    distinct_tokens = set()
 
-    # count the occurences of "present | past"
-    for token in tokens[1:]:
-        past = tuple(last_tokens)
-        if precondition(token, past[-1]):
+    for tokens_entry in tokens_list:
+        tokens = word_tokenize(tokens_entry[0])
+        last_tokens = ['^']
+        # count the occurences of "present | past"
+        for token in chain(tokens[1:], ['$']):
+            distinct_tokens.add(token)
+            past = tuple(last_tokens)
             suffixes = [past[i:] for i in range(len(past))]
             for suffix in suffixes:
                 if suffix not in transitions:
@@ -21,8 +25,8 @@ def compute_transitions(tokens, precondition=lambda token, last_token: True, ord
                     else:
                         transitions[suffix][token] += 1
 
-        last_tokens = last_tokens[1 if len(last_tokens) == order else 0:]
-        last_tokens.append(token)
+            last_tokens = last_tokens[1 if len(last_tokens) == order else 0:]
+            last_tokens.append(token)
 
     # compute probabilities
     for transition_counts in transitions.values():
@@ -30,7 +34,7 @@ def compute_transitions(tokens, precondition=lambda token, last_token: True, ord
         for token in transition_counts.keys():
             transition_counts[token] /= summed_occurences
     # ensure there is a probability
-    for token in tokens:
+    for token in distinct_tokens:
         if (token,) not in transitions:
             transitions[(token,)] = {token: 1}
 

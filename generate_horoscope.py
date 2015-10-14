@@ -4,17 +4,20 @@
 import argparse
 import sqlite3
 import sys
+import markov
 
 """generate_horoscope.py: Generates horoscopes based provided corpuses"""
 
 __author__ = "Project Zodiacy"
 __copyright__ = "Copyright 2015, Project Zodiacy"
 
+
 _parser = argparse.ArgumentParser(description="Awesome SQLite importer")
 _parser.add_argument('-d', '--database', dest='database', required=True, help='sqlite database file')
 _parser.add_argument('-s', '--sign', dest='sign', help='zodiac sign to generate', default=None)
 _parser.add_argument('-k', '--keyword', dest='keyword', help='keyword for the horoscope', default=None)
 _parser.add_argument('-t', '--threshold', dest='threshold', help='minimum count of horoscopes for the given filters', default=10)
+_parser.add_argument('-o', '--order', dest='order', help='order of the used markov chain', default=4)
 
 def keyword_valid(cursor, keyword, threshold=10):
     """ Checks whether enough horoscopes are present for the keyword """
@@ -51,4 +54,5 @@ if __name__ == '__main__':
             print('Not enough horoscopes for the given keyword', sys.stderr)
             sys.exit(1)
         corpuses = get_corpuses(conn.cursor(), zodiac_sign=None, keyword='enthusiasm')
-        print(corpuses.fetchone())
+        transitions = markov.compute_transitions(corpuses, args.order)
+        print(len(transitions))
