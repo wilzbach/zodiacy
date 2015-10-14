@@ -14,26 +14,9 @@ __copyright__ = "Copyright 2015, Project Zodiacy"
 
 
 parser = argparse.ArgumentParser(description="Awesome SQLite importer")
-parser.add_argument('-i', '--inFile', dest='inFile', help='Input file')
-parser.add_argument('-s', '--sqlFile', dest='sqlFile', help='SQLite file')
+parser.add_argument('-i', '--inFile', dest='inFile', required=True, help='Input file')
+parser.add_argument('-s', '--sqlFile', dest='sqlFile', required=True, help='SQLite file')
 args = parser.parse_args()
-
-if args.inFile is None:
-    sys.exit("You suck")
-
-
-def bufferedReader(f):
-    """ Join consecutive lines of a single json line
-    """
-    text = None
-    for line in f:
-        if line[0] == "[":
-            if text is not None:
-                yield text
-            text = line
-        else:
-            text += line
-    yield text
 
 #create sqlite
 if os.path.exists(args.sqlFile):
@@ -45,7 +28,7 @@ c.execute('''CREATE TABLE horoscopes
              (sign int, keyword text, subject_line text, sms_interp text, interp text, rating real, slant text, date text)''')
 
 with open(args.inFile) as f:
-    for horoscopesStr in bufferedReader(f):
+    for horoscopesStr in f:
         horoscopes = json.loads(horoscopesStr)
         for h in horoscopes:
             c.execute("INSERT INTO horoscopes VALUES (?,?,?,?,?,?,?,?)",

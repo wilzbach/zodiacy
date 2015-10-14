@@ -6,10 +6,13 @@ Project Zodiacy
 1) Fetch horoscope data
 -----------------------
 First you need to download the horoscope data:
+
 ```
-dseq 01.01.2007 $(date +%d.%m.%Y) -i %d.%m.%Y | parallel --no-notice -j50 curl -s http://www.tarot.com/daily-horoscope/aquarius/{} | perl -nle 'print $1 if /window.horoscopes = (.*);/m' > zodiacs.json
+dseq 01.08.2007 $(date +%d.%m.%Y) -i %d.%m.%Y | parallel --no-notice -j50 curl -s http://www.tarot.com/daily-horoscope/aquarius/{} | perl -nle 'if( /window.horoscopes = (.*);/m) { chomp($1); print $1 }' > zodiacs.json
 ```
+
 Which you can then import into an sqlite database:
+
 ```
 ./import_to_sql.py -i zodiacs.json -s zodiac.sqlite
 ```
