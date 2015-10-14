@@ -18,7 +18,7 @@ parser.add_argument('-i', '--inFile', dest='inFile', required=True, help='Input 
 parser.add_argument('-s', '--sqlFile', dest='sqlFile', required=True, help='SQLite file')
 args = parser.parse_args()
 
-#create sqlite
+# Create SQLite
 if os.path.exists(args.sqlFile):
     os.remove(args.sqlFile)
 
@@ -30,6 +30,9 @@ c.execute('''CREATE TABLE horoscopes
 with open(args.inFile) as f:
     for horoscopesStr in f:
         horoscopes = json.loads(horoscopesStr)
+        if isinstance(horoscopes, dict):
+            # WHY do they use different formats?
+            horoscopes = horoscopes.values()
         for h in horoscopes:
             c.execute("INSERT INTO horoscopes VALUES (?,?,?,?,?,?,?,?)",
                         (int(h['sign']), h['keyword'], h['subject_line'], h['sms_interp'], h['interp'], float(h['rating']), h['slant'], h['date']))
