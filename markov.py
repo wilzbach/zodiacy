@@ -3,8 +3,9 @@ from itertools import chain
 import warnings
 import random
 import utils
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=DeprecationWarning)
+with warnings.catch_warnings(record=True):
+    # we need to workaround the Python bug due to simplefilter('ignore')
+    warnings.filterwarnings("always", category=DeprecationWarning)
     from nltk import word_tokenize
 
 __author__ = "Project Zodiacy"
