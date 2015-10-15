@@ -1,6 +1,9 @@
 from collections import deque, defaultdict
 from itertools import chain
-from nltk import word_tokenize
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore",category=DeprecationWarning)
+    from nltk import word_tokenize
 import random
 import utils
 
@@ -75,7 +78,8 @@ class Markov:
             last_tokens.append(new_token)
             generated_tokens.append(new_token)
 
-        return generated_tokens[:-1]
+        text = generated_tokens[:-1]
+        return utils.join_sentence(text)
 
     def _generate_next_token(self, past):
         for key in utils.get_suffixes(past):
