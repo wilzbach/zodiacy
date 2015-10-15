@@ -1,9 +1,11 @@
 from collections import deque, defaultdict
-from copy import deepcopy
 from itertools import chain
-from nltk import word_tokenize
+import warnings
 import random
 import utils
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    from nltk import word_tokenize
 
 __author__ = "Project Zodiacy"
 __copyright__ = "Copyright 2015, Project Zodiacy"
@@ -63,15 +65,6 @@ class Markov:
 
         return transitions
 
-    def _weighted_choice(self, item_probabilities, value_to_probability=lambda x: x, probability_sum=1):
-        """ Expects a list of (item, probability)-tuples and the sum of all probabilities and returns one entry weighted at random """
-        random_value = random.random() * probability_sum
-        summed_probability = 0
-        for item, value in item_probabilities:
-            summed_probability += value_to_probability(value)
-            if summed_probability > random_value:
-                return item
-
     def generate_text(self, nr_of_entries):
         """ Generates sentences from a given corpus
         TODO: we DONT limit
@@ -85,13 +78,20 @@ class Markov:
             last_tokens.append(new_token)
             generated_tokens.append(new_token)
 
-        return generated_tokens[:-1]
+        text = generated_tokens[:-1]
+        return utils.join_sentence(text)
 
-    def _generate_next_token(self, past, precondition=lambda x: True):
+    def _generate_next_token(self, past):
         for key in utils.get_suffixes(past):
             if key in self.transitions:
-                possible_transitions = deepcopy(self.transitions[key])
-                for key in self.transitions[key].keys():
-                    if not precondition(key):
-                        del possible_transitions[key]
-                return self._weighted_choice(possible_transitions.items(), probability_sum=sum(possible_transitions.values()))
+                return self._weighted_choice(self.transitions[key].items(),
+                        probability_sum=sum(self.transitions[key].values()))
+
+    def _weighted_choice(self, item_probabilities, value_to_probability=lambda x: x, probability_sum=1):
+        """ Expects a list of (item, probability)-tuples and the sum of all probabilities and returns one entry weighted at random """
+        random_value = random.random() * probability_sum
+        summed_probability = 0
+        for item, value in item_probabilities:
+            summed_probability += value_to_probability(value)
+            if summed_probability > random_value:
+                return item

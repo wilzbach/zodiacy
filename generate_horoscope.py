@@ -69,3 +69,6 @@ if __name__ == '__main__':
             sys.exit(0)
         mk = Markov(corpus, order=args.order)
         print(mk.generate_text(5))
+        print(mk.generate_text(5))
+        print(mk.generate_text(5))
+        print(mk.generate_text(5))
