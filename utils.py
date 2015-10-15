@@ -7,7 +7,7 @@ def get_suffixes(arr):
     Args:
         arr: input array
     Returns:
-        Array of all possible suffixes
+        Array of all possible suffixes (as tuples)
     """
     arr = tuple(arr)
     return (arr[i:] for i in range(len(arr)))
