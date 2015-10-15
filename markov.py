@@ -4,8 +4,9 @@ from nltk import word_tokenize
 import random
 from collections import deque, defaultdict
 
-_start_symbol = '^'
-_end_symbol = '$'
+__author__ = "Project Zodiacy"
+__copyright__ = "Copyright 2015, Project Zodiacy"
+
 
 class Markov:
     """
@@ -13,25 +14,33 @@ class Markov:
     """
 
     def __init__(self, corpus, order=1):
-        self.order = 1
+        """
+        """
+        self.order = order
+        self._start_symbol = '^'
+        self._end_symbol = '$'
         self.transitions = self._compute_transitions(corpus, self.order)
 
     def _compute_transitions(self, corpus, order=1):
-        """ 
-        generates the transition probabilities for the given corpus
+        """
+        generates the transition probabilities of a corpus
+        :param corpus: the given corpus (a corpus_entry needs to be a tuple or array)
+        :param order: the maximal order
+        :return: transition probabilities
         """
         transitions = defaultdict(lambda: defaultdict(int))
         distinct_tokens = set()
 
         for corpus_entry in corpus:
-            # there are invalid entries
-            if corpus_entry[0] is None: continue
+            if corpus_entry[0] is None:
+                # there are invalid entries
+                continue
             tokens = word_tokenize(corpus_entry[0])
-            rating = corpus_entry[1] if len(corpus_entry > 1) else 1
+            rating = corpus_entry[1] if len(corpus_entry) > 1 else 1
             # efficient circular buffer
-            last_tokens = deque([_start_symbol]*order, maxlen=order)
+            last_tokens = deque([self._start_symbol] * order, maxlen=order)
             # count the occurences of "present | past"
-            for token in chain(tokens, [_end_symbol]):
+            for token in chain(tokens, [self._end_symbol]):
                 distinct_tokens.add(token)
                 past = tuple(last_tokens)
                 for suffix in (past[i:] for i in range(len(past))):
@@ -44,16 +53,18 @@ class Markov:
             summed_occurences = sum(transition_counts.values())
             for token in transition_counts.keys():
                 transition_counts[token] /= summed_occurences
+
         # ensure there is a probability
+        # WHY? do we do that? leads to a loop?
         for token in distinct_tokens:
             if (token,) not in transitions:
                 transitions[(token,)] = {token: 1}
 
         return transitions
 
-    def _weighted_choice(self, item_probabilities, value_to_probability=lambda x:x, probability_sum=1):
+    def _weighted_choice(self, item_probabilities, value_to_probability=lambda x: x, probability_sum=1):
         """ Expects a list of (item, probability)-tuples and the sum of all probabilities and returns one entry weighted at random """
-        random_value = random.random()*probability_sum
+        random_value = random.random() * probability_sum
         summed_probability = 0
         for item, value in item_probabilities:
             summed_probability += value_to_probability(value)
@@ -61,9 +72,9 @@ class Markov:
                 return item
 
     def generate_text(self, count):
-        last_tokens = [_start_symbol]*self.order
+        last_tokens = [self._start_symbol] * self.order
         generated_tokens = []
-        while last_tokens[-1] != _end_symbol:
+        while last_tokens[-1] != self._end_symbol:
             new_token = self.generate_next_token(tuple(last_tokens))
             last_tokens = last_tokens[1:]
             last_tokens.append(new_token)
