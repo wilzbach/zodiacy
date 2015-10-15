@@ -34,7 +34,7 @@ with open(args.inFile) as f:
             # WHY do they use different formats?
             horoscopes = horoscopes.values()
         for h in horoscopes:
-            c.execute("INSERT INTO horoscopes VALUES (?,?,?,?,?,?,?,?)",
+            c.execute("INSERT INTO horoscopes VALUES (?,?,?,?,?,?,?)",
                         (int(h['sign']), h['keyword'], h['subject_line'], h['sms_interp'], h['interp'], int(h['rating']), h['date']))
 
 conn.commit()
