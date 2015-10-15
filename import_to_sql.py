@@ -23,12 +23,11 @@ args = parser.parse_args()
 if os.path.exists(args.sqlFile):
     os.remove(args.sqlFile)
 
-conn = sqlite3.connect(args.sqlFile)
-c = conn.cursor()
-c.execute('''CREATE TABLE horoscopes
-             (sign int, keyword text, subject_line text, sms_interp text, interp text, rating int, date text)''')
+with sqlite3.connect(args.sqlFile) as conn, open(args.inFile) as f:
+    c = conn.cursor()
+    c.execute('''CREATE TABLE horoscopes
+                 (sign int, keyword text, subject_line text, sms_interp text, interp text, rating int, date text)''')
 
-with open(args.inFile) as f:
     for horoscopesStr in f:
         horoscopes = json.loads(horoscopesStr)
         if isinstance(horoscopes, dict):
@@ -38,6 +37,3 @@ with open(args.inFile) as f:
             c.execute("INSERT INTO horoscopes VALUES (?,?,?,?,?,?,?)",
                       (int(h['sign']), h['keyword'], h['subject_line'],
                           h['sms_interp'], h['interp'], int(h['rating']), h['date']))
-
-conn.commit()
-conn.close()

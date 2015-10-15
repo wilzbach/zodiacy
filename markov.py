@@ -1,15 +1,20 @@
 from collections import defaultdict
 from itertools import chain
 import warnings
+import logging
 import random
 import utils
 with warnings.catch_warnings(record=True):
     # we need to workaround the Python bug due to simplefilter('ignore')
     warnings.filterwarnings("always", category=DeprecationWarning)
     from nltk import word_tokenize, pos_tag
+    from nltk.corpus import wordnet as wn
 
 __author__ = "Project Zodiacy"
 __copyright__ = "Copyright 2015, Project Zodiacy"
+
+TOKENS_FOR_SYNONYMS = ["VB", "JJ", "NN", "RB"]
+logger = logging.getLogger('root')
 
 
 class Markov:
@@ -24,10 +29,13 @@ class Markov:
                                 weight for the previous states (only HMM)
             prob_hmm_emissions: When using previous states and emissions,
                                 weight for the previous emissions (only HMM)
+            use_synonyms:
+            prob_use_synonyms:
     """
 
     def __init__(self, corpus, order=1, use_emissions=True, order_emissions=1,
-                 prob_hmm_states=0.5, prob_hmm_emissions=0.5):
+                 prob_hmm_states=0.5, prob_hmm_emissions=0.5, use_synonyms=False,
+                 prob_use_synonyms=0.1):
         """ Initializes the Markov Chain with a given corpus and order """
         assert order >= 1, "Invalid Markov chain order"
         assert order <= 20, "Markov chain order too high"
@@ -43,6 +51,9 @@ class Markov:
         if self._use_emissions:
             self._compute_emissions(corpus, self.order)
 
+        self.use_synonyms = use_synonyms
+        self.prob_use_synonyms = prob_use_synonyms
+
     def _compute_transitions(self, corpus, order=1):
         """ Computes the transition probabilities of a corpus
         Args:
@@ -52,7 +63,7 @@ class Markov:
         self.transitions = defaultdict(lambda: defaultdict(int))
 
         for corpus_entry in corpus:
-            tokens = word_tokenize(corpus_entry[0])
+            tokens = utils.expanding_words(word_tokenize(corpus_entry[0]))
 
             rating = corpus_entry[1] if len(corpus_entry) > 1 else 1
             last_tokens = utils.prefilled_buffer(
@@ -84,7 +95,8 @@ class Markov:
             lambda: defaultdict(lambda: defaultdict(int)))
 
         for corpus_entry in corpus:
-            tokens = pos_tag(word_tokenize(corpus_entry[0]))
+            tokens = pos_tag(
+                list(utils.expanding_words(word_tokenize(corpus_entry[0]))))
 
             rating = corpus_entry[1] if len(corpus_entry) > 1 else 1
             last_tokens = utils.prefilled_buffer(
@@ -132,11 +144,34 @@ class Markov:
         while last_tokens[-1] != self._end_symbol:
             new_token = next_token(last_tokens)
             emission = emit(new_token, last_tokens, last_emissions)
-            generated_tokens.append(emission)
             last_tokens.append(new_token)
             last_emissions.append(emission)
+            if self.use_synonyms:
+                if random.random() > self.prob_use_synonyms:
+                    emission = self._search_synonym(emission)
+            generated_tokens.append(emission)
         text = generated_tokens[:-1]
         return utils.join_tokens_to_sentences(text)
+
+    def _search_synonym(self, word):
+        """ Tries to find synonyms using the wordnet API
+        Only searches synonyms for verbs (VB), adjectives (JJ), nouns (NN)
+        and adverbs(RB).
+        The synonym is randomly chosen from all available ones.
+
+        Args:
+            word: word to replace with a synonym
+        Returns:
+            synonym if we found a synonym
+            word if there are no synonyms
+        """
+        if pos_tag([word])[0][1] in TOKENS_FOR_SYNONYMS:
+            syns = [y for y in (x.lemma_names()[0]
+                                for x in wn.synsets(word)) if y != word]
+            if len(syns) > 0:
+                w = random.choice(syns)
+                logger.debug("found synonym %s for %s", w, word)
+        return word
 
     def generate_text(self, generation_type='markov'):
         """ Generates sentences from a given corpus
