@@ -1,6 +1,6 @@
 from copy import deepcopy
 from itertools import chain
-from nltk import word_tokenize, pos_tag
+from nltk import word_tokenize
 import random
 from collections import deque, defaultdict
 
@@ -17,8 +17,8 @@ class Markov:
         self.transitions = self._compute_transitions(corpus, self.order)
 
     def _compute_transitions(self, corpus, order=1):
-        """ generates the transition probabilities for
-
+        """ 
+        generates the transition probabilities for the given corpus
         """
         transitions = defaultdict(lambda: defaultdict(int))
         distinct_tokens = set()
@@ -27,6 +27,7 @@ class Markov:
             # there are invalid entries
             if corpus_entry[0] is None: continue
             tokens = word_tokenize(corpus_entry[0])
+            rating = corpus_entry[1] if len(corpus_entry > 1) else 1
             # efficient circular buffer
             last_tokens = deque([_start_symbol]*order, maxlen=order)
             # count the occurences of "present | past"
@@ -34,7 +35,7 @@ class Markov:
                 distinct_tokens.add(token)
                 past = tuple(last_tokens)
                 for suffix in (past[i:] for i in range(len(past))):
-                    transitions[suffix][token] += 1
+                    transitions[suffix][token] += rating
 
                 last_tokens.append(token)
 
@@ -49,26 +50,6 @@ class Markov:
                 transitions[(token,)] = {token: 1}
 
         return transitions
-
-    def compute_token_probabilities(self, pos_tagged_tokens):
-        token_probabilities = dict()
-
-        for item in pos_tagged_tokens:
-            if item[1] not in token_probabilities:
-                token_probabilities[item[1]] = {item[0]: 1}
-            else:
-                if item[0] not in token_probabilities[item[1]]:
-                    token_probabilities[item[1]][item[0]] = 1
-                else:
-                    token_probabilities[item[1]][item[0]] += 1
-
-        for probabilities in token_probabilities.values():
-            summed_occurences = sum(probabilities.values())
-            for token in probabilities.keys():
-                probabilities[token] /= summed_occurences
-
-
-        return token_probabilities
 
     def _weighted_choice(self, item_probabilities, value_to_probability=lambda x:x, probability_sum=1):
         """ Expects a list of (item, probability)-tuples and the sum of all probabilities and returns one entry weighted at random """
@@ -98,11 +79,3 @@ class Markov:
                     if not precondition(key):
                         del possible_transitions[key]
                 return self._weighted_choice(possible_transitions.items(), probability_sum=sum(possible_transitions.values()))
-
-    def lexicographic_markov(self, input, count):
-        tokens = word_tokenize(input)
-        pos_tagged_tokens = pos_tag(tokens)
-        symbol_transitions = self.compute_transitions([x[1] for x in pos_tagged_tokens])
-        token_probabilities = self.compute_token_probabilities(pos_tagged_tokens)
-
-        return self.generate_text(symbol_transitions, random.choice([x[1] for x in pos_tagged_tokens]), count, lambda symbol: self._weighted_choice(token_probabilities[symbol].items()), order)
