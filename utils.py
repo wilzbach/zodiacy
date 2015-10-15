@@ -1,3 +1,5 @@
+from collections import deque
+
 __author__ = "Project Zodiacy"
 __copyright__ = "Copyright 2015, Project Zodiacy"
 
@@ -11,6 +13,19 @@ def get_suffixes(arr):
     """
     arr = tuple(arr)
     return (arr[i:] for i in range(len(arr)))
+
+
+def prefilled_buffer(start_element, length=-1):
+    """ Provides an efficient circular buffer with a limited size
+    Will fill the entire buffer with the start elements
+    Args:
+        start_element: element that will be used to fill the buffer
+        length: total length of the buffer
+    Returns:
+        limited size buffer
+    """
+    assert length > 0
+    return deque([start_element] * length, maxlen=length)
 
 SENTENCE_STOPS = [".", "?", ",", ":", ";", "'"]
 JOIN_WITH_BEFORE = ['n\'t', '\'ll', '\'re', '\'ve', '\'s']
