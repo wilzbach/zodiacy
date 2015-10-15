@@ -4,7 +4,7 @@
 import argparse
 import sqlite3
 import sys
-import markov
+from markov import Markov
 
 """generate_horoscope.py: Generates horoscopes based provided corpuses"""
 
@@ -25,7 +25,7 @@ def keyword_valid(cursor, keyword, threshold=10):
     if len(count) > 0 and count[0] > threshold:
         return True
 
-def get_corpuses(cursor, with_rating=False, zodiac_sign=None, keyword=None):
+def get_corpus(cursor, with_rating=False, zodiac_sign=None, keyword=None):
     """ Returns a cursor with all horoscopes for the given parameters """
     # ugly code =(
     zodiac_signs = dict(zip(['general', 'aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'], range(13)))
@@ -54,6 +54,6 @@ if __name__ == '__main__':
         if not keyword_valid:
             print('Not enough horoscopes for the given keyword', sys.stderr)
             sys.exit(1)
-        corpuses = get_corpuses(conn.cursor(), zodiac_sign=None, keyword=args.keyword)
-        transitions = markov.compute_transitions(corpuses, order=args.order)
-        print(' '.join(markov.generate_text(transitions, 5, order=args.order)))
+        corpus = get_corpus(conn.cursor(), zodiac_sign=None, keyword=args.keyword)
+        mk = Markov(corpus, order=args.order)
+        print(mk.generate_text(5))

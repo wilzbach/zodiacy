@@ -2,100 +2,107 @@ from copy import deepcopy
 from itertools import chain
 from nltk import word_tokenize, pos_tag
 import random
+from collections import deque, defaultdict
 
 _start_symbol = '^'
 _end_symbol = '$'
 
-def compute_transitions(tokens_list, order=1): 
-    transitions = dict()
-    distinct_tokens = set()
+class Markov:
+    """
+    A simple markov chain implementation
+    """
 
-    for tokens_entry in tokens_list:
-        if tokens_entry[0] is None: continue
-        tokens = word_tokenize(tokens_entry[0])
-        last_tokens = [_start_symbol]*order
-        # count the occurences of "present | past"
-        for token in chain(tokens, [_end_symbol]):
-            distinct_tokens.add(token) 
-            past = tuple(last_tokens)
-            #suffixes = [past[i:] for i in range(len(past))]
-            for suffix in (past[i:] for i in range(len(past))):
-                if suffix not in transitions:
-                    transitions[suffix] = {token : 1}
-                else:
-                    if token not in transitions[suffix]:
-                        transitions[suffix][token] = 1
-                    else:
-                        transitions[suffix][token] += 1
+    def __init__(self, corpus, order=1):
+        self.order = 1
+        self.transitions = self._compute_transitions(corpus, self.order)
 
-            last_tokens = last_tokens[1:]
-            last_tokens.append(token)
+    def _compute_transitions(self, corpus, order=1):
+        """ generates the transition probabilities for
 
-    # compute probabilities
-    for transition_counts in transitions.values():
-        summed_occurences = sum(transition_counts.values())
-        for token in transition_counts.keys():
-            transition_counts[token] /= summed_occurences
-    # ensure there is a probability
-    for token in distinct_tokens:
-        if (token,) not in transitions:
-            transitions[(token,)] = {token: 1}
+        """
+        transitions = defaultdict(lambda: defaultdict(int))
+        distinct_tokens = set()
 
-    return transitions
+        for corpus_entry in corpus:
+            # there are invalid entries
+            if corpus_entry[0] is None: continue
+            tokens = word_tokenize(corpus_entry[0])
+            # efficient circular buffer
+            last_tokens = deque([_start_symbol]*order, maxlen=order)
+            # count the occurences of "present | past"
+            for token in chain(tokens, [_end_symbol]):
+                distinct_tokens.add(token)
+                past = tuple(last_tokens)
+                for suffix in (past[i:] for i in range(len(past))):
+                    transitions[suffix][token] += 1
 
-def compute_token_probabilities(pos_tagged_tokens):
-    token_probabilities = dict()
+                last_tokens.append(token)
 
-    for item in pos_tagged_tokens:
-        if item[1] not in token_probabilities:
-            token_probabilities[item[1]] = {item[0]: 1}
-        else:
-            if item[0] not in token_probabilities[item[1]]:
-                token_probabilities[item[1]][item[0]] = 1
+        # compute probabilities
+        for transition_counts in transitions.values():
+            summed_occurences = sum(transition_counts.values())
+            for token in transition_counts.keys():
+                transition_counts[token] /= summed_occurences
+        # ensure there is a probability
+        for token in distinct_tokens:
+            if (token,) not in transitions:
+                transitions[(token,)] = {token: 1}
+
+        return transitions
+
+    def compute_token_probabilities(self, pos_tagged_tokens):
+        token_probabilities = dict()
+
+        for item in pos_tagged_tokens:
+            if item[1] not in token_probabilities:
+                token_probabilities[item[1]] = {item[0]: 1}
             else:
-                token_probabilities[item[1]][item[0]] += 1
+                if item[0] not in token_probabilities[item[1]]:
+                    token_probabilities[item[1]][item[0]] = 1
+                else:
+                    token_probabilities[item[1]][item[0]] += 1
 
-    for probabilities in token_probabilities.values():
-        summed_occurences = sum(probabilities.values())
-        for token in probabilities.keys():
-            probabilities[token] /= summed_occurences
+        for probabilities in token_probabilities.values():
+            summed_occurences = sum(probabilities.values())
+            for token in probabilities.keys():
+                probabilities[token] /= summed_occurences
 
 
-    return token_probabilities
+        return token_probabilities
 
-def _weighted_choice(item_probabilities, value_to_probability=lambda x:x, probability_sum=1):
-    """ Expects a list of (item, probability)-tuples and the sum of all probabilities and returns one entry weighted at random """
-    random_value = random.random()*probability_sum
-    summed_probability = 0
-    for item, value in item_probabilities:
-        summed_probability += value_to_probability(value)
-        if summed_probability > random_value:
-            return item
-        
-def generate_text(transitions, count, order=1):
-    last_tokens = [_start_symbol]*order
-    generated_tokens = []
-    while last_tokens[-1] != _end_symbol:
-        new_token = generate_next_token(transitions, tuple(last_tokens))
-        last_tokens = last_tokens[1:]
-        last_tokens.append(new_token)
-        generated_tokens.append(new_token)
+    def _weighted_choice(self, item_probabilities, value_to_probability=lambda x:x, probability_sum=1):
+        """ Expects a list of (item, probability)-tuples and the sum of all probabilities and returns one entry weighted at random """
+        random_value = random.random()*probability_sum
+        summed_probability = 0
+        for item, value in item_probabilities:
+            summed_probability += value_to_probability(value)
+            if summed_probability > random_value:
+                return item
 
-    return generated_tokens[:-1]
+    def generate_text(self, count):
+        last_tokens = [_start_symbol]*self.order
+        generated_tokens = []
+        while last_tokens[-1] != _end_symbol:
+            new_token = self.generate_next_token(tuple(last_tokens))
+            last_tokens = last_tokens[1:]
+            last_tokens.append(new_token)
+            generated_tokens.append(new_token)
 
-def generate_next_token(transitions, past, precondition=lambda x: True):
-    for key in [past[i:] for i in range(len(past))]:
-        if key in transitions:
-            possible_transitions = deepcopy(transitions[key])
-            for key in transitions[key].keys():
-                if not precondition(key):
-                    del possible_transitions[key]
-            return _weighted_choice(possible_transitions.items(), probability_sum=sum(possible_transitions.values()))
+        return generated_tokens[:-1]
 
-def lexicographic_markov(input, count, order=1):
-    tokens = word_tokenize(input)
-    pos_tagged_tokens = pos_tag(tokens)
-    symbol_transitions = compute_transitions([x[1] for x in pos_tagged_tokens])
-    token_probabilities = compute_token_probabilities(pos_tagged_tokens)
+    def generate_next_token(self, past, precondition=lambda x: True):
+        for key in [past[i:] for i in range(len(past))]:
+            if key in self.transitions:
+                possible_transitions = deepcopy(self.transitions[key])
+                for key in self.transitions[key].keys():
+                    if not precondition(key):
+                        del possible_transitions[key]
+                return self._weighted_choice(possible_transitions.items(), probability_sum=sum(possible_transitions.values()))
 
-    return generate_text(symbol_transitions, random.choice([x[1] for x in pos_tagged_tokens]), count, lambda symbol: _weighted_choice(token_probabilities[symbol].items()), order)
+    def lexicographic_markov(self, input, count):
+        tokens = word_tokenize(input)
+        pos_tagged_tokens = pos_tag(tokens)
+        symbol_transitions = self.compute_transitions([x[1] for x in pos_tagged_tokens])
+        token_probabilities = self.compute_token_probabilities(pos_tagged_tokens)
+
+        return self.generate_text(symbol_transitions, random.choice([x[1] for x in pos_tagged_tokens]), count, lambda symbol: self._weighted_choice(token_probabilities[symbol].items()), order)
