@@ -46,7 +46,7 @@ class Markov:
             rating = corpus_entry[1] if len(corpus_entry) > 1 else 1
             # efficient circular buffer
             last_tokens = deque([self._start_symbol] * order, maxlen=order)
-            # count the occurences of "present | past"
+            # count the occurrences of "present | past"
             for token in chain(tokens, [self._end_symbol]):
                 distinct_tokens.add(token)
                 for suffix in utils.get_suffixes(last_tokens):
