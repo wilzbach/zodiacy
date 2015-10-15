@@ -25,7 +25,7 @@ if os.path.exists(args.sqlFile):
 conn = sqlite3.connect(args.sqlFile)
 c = conn.cursor()
 c.execute('''CREATE TABLE horoscopes
-             (sign int, keyword text, subject_line text, sms_interp text, interp text, rating real, slant text, date text)''')
+             (sign int, keyword text, subject_line text, sms_interp text, interp text, rating int, date text)''')
 
 with open(args.inFile) as f:
     for horoscopesStr in f:
@@ -34,8 +34,8 @@ with open(args.inFile) as f:
             # WHY do they use different formats?
             horoscopes = horoscopes.values()
         for h in horoscopes:
-            c.execute("INSERT INTO horoscopes VALUES (?,?,?,?,?,?,?,?)",
-                        (int(h['sign']), h['keyword'], h['subject_line'], h['sms_interp'], h['interp'], float(h['rating']), h['slant'], h['date']))
+            c.execute("INSERT INTO horoscopes VALUES (?,?,?,?,?,?,?)",
+                        (int(h['sign']), h['keyword'], h['subject_line'], h['sms_interp'], h['interp'], int(h['rating']), h['date']))
 
 conn.commit()
 conn.close()
