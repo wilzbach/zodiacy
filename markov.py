@@ -3,8 +3,9 @@ from itertools import chain
 import warnings
 import random
 import utils
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=DeprecationWarning)
+with warnings.catch_warnings(record=True):
+    # we need to workaround the Python bug due to simplefilter('ignore')
+    warnings.filterwarnings("always", category=DeprecationWarning)
     from nltk import word_tokenize
 
 __author__ = "Project Zodiacy"
@@ -28,9 +29,11 @@ class Markov:
 
     def _compute_transitions(self, corpus, order=1):
         """ Generates the transition probabilities of a corpus
-        :param corpus: the given corpus (a corpus_entry needs to be a tuple or array)
-        :param order: the maximal order
-        :returns: transition probabilities
+        Args:
+            corpus: the given corpus (a corpus_entry needs to be a tuple or array)
+            order: the maximal order
+        Returns:
+            transition probabilities
         """
         transitions = defaultdict(lambda: defaultdict(float))
         distinct_tokens = set()
@@ -43,7 +46,7 @@ class Markov:
             rating = corpus_entry[1] if len(corpus_entry) > 1 else 1
             # efficient circular buffer
             last_tokens = deque([self._start_symbol] * order, maxlen=order)
-            # count the occurences of "present | past"
+            # count the occurrences of "present | past"
             for token in chain(tokens, [self._end_symbol]):
                 distinct_tokens.add(token)
                 for suffix in utils.get_suffixes(last_tokens):
@@ -67,11 +70,15 @@ class Markov:
 
     def generate_text(self, nr_of_entries):
         """ Generates sentences from a given corpus
-        TODO: we DONT limit
+        TODO:
+            we DONT limit
         Args:
             nr_of_entries: Maximal number of entries to generate
+        Returns:
+            Properly formatted string of generated sentences
         """
-        last_tokens = deque([self._start_symbol] * self.order, maxlen=self.order)
+        last_tokens = deque([self._start_symbol] *
+                            self.order, maxlen=self.order)
         generated_tokens = []
         while last_tokens[-1] != self._end_symbol:
             new_token = self._generate_next_token(last_tokens)
@@ -79,16 +86,19 @@ class Markov:
             generated_tokens.append(new_token)
 
         text = generated_tokens[:-1]
-        return utils.join_sentence(text)
+        return utils.join_tokens_to_sentences(text)
 
     def _generate_next_token(self, past):
         for key in utils.get_suffixes(past):
             if key in self.transitions:
                 return self._weighted_choice(self.transitions[key].items(),
-                        probability_sum=sum(self.transitions[key].values()))
+                                             probability_sum=sum(self.transitions[key].values()))
 
-    def _weighted_choice(self, item_probabilities, value_to_probability=lambda x: x, probability_sum=1):
-        """ Expects a list of (item, probability)-tuples and the sum of all probabilities and returns one entry weighted at random """
+    def _weighted_choice(self, item_probabilities,
+                         value_to_probability=lambda x: x, probability_sum=1):
+        """ Expects a list of (item, probability)-tuples
+        and the sum of all probabilities and returns one entry weighted at random
+        """
         random_value = random.random() * probability_sum
         summed_probability = 0
         for item, value in item_probabilities:
