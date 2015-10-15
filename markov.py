@@ -32,7 +32,7 @@ class Markov:
         :param order: the maximal order
         :returns: transition probabilities
         """
-        transitions = defaultdict(lambda: defaultdict(int))
+        transitions = defaultdict(lambda: defaultdict(float))
         distinct_tokens = set()
 
         for corpus_entry in corpus:

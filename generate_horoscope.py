@@ -5,6 +5,7 @@ import argparse
 import sqlite3
 import sys
 from markov import Markov
+from math import sqrt
 from wordnik import swagger, WordApi
 
 """generate_horoscope.py: Generates horoscopes based provided corpuses"""
@@ -32,29 +33,44 @@ def keyword_valid(cursor, keyword, threshold=10):
 def get_synonyms(keyword):
     client = swagger.ApiClient(_WORDNICK_API_KEY, _WORDNICK_API_URL)
     word_api = WordApi.WordApi(client)
-    return word_api.getTopExample(keyword).text
+    return word_api.getRelatedWords(keyword, relationshipTypes='synonym')[0].words
 
-def get_corpus(cursor, with_rating=False, zodiac_sign=None, keyword=None):
+def get_present_synonyms(cursor, keyword):
+    synonyms = get_synonyms(keyword)
+    cursor.execute('SELECT keyword FROM horoscopes WHERE keyword IN (%s) GROUP BY keyword' % ','.join('?' for _ in synonyms), tuple(synonyms))
+    return [row[0] for row in cursor if row is not None]
+
+def get_corpus(conn, with_rating=False, with_synonyms=False, zodiac_sign=None, keyword=None):
     """ Returns a cursor with all horoscopes for the given parameters """
     # ugly code =(
     zodiac_signs = dict(zip(['general', 'aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'], range(13)))
+    synonym_influence = 0.2
     if zodiac_sign not in zodiac_signs:
         if zodiac_sign is not None:
             raise ValueError('Invalid zodiac sign')
     else:
         zodiac_sign_ordinal = zodiac_signs[zodiac_sign]
 
-    base_stmt = 'SELECT interp%s from horoscopes' % (',rating' if with_rating else '')
+    base_stmt = 'SELECT interp%s,keyword from horoscopes' % (',rating' if with_rating else '')
+    cursor = conn.cursor()
     if zodiac_sign is None:
         if keyword is None:
-            return cursor.execute(base_stmt)
+            cursor.execute(base_stmt)
+            return ((row[0], row[1]) for row in cursor) if with_rating else ((row[0],) for row in cursor)
         else:
-            return cursor.execute(base_stmt + ' WHERE keyword=?', (keyword,))
+            synonyms = get_present_synonyms(conn.cursor(), args.keyword)
+            cursor.execute(base_stmt + ' WHERE keyword=?', (keyword,))
+            cursor.execute(base_stmt + ' WHERE keyword in (%s)' % ','.join(('?' for _ in synonyms)), (*synonyms,))
+            return ((row[0], row[1] if row[2] is keyword else synonym_influence*row[1]*sqrt(len(synonyms))) for row in cursor) if with_rating else ((row[0],) for row in cursor if row is not None)
     else:
         if keyword is None:
-            return cursor.execute(base_stmt + ' WHERE sign=?', (str(zodiac_sign_ordinal),))
+            cursor.execute(base_stmt + ' WHERE sign=?', (str(zodiac_sign_ordinal),))
+            return ((row[0], row[1]) for row in cursor) if with_rating else ((row[0],) for row in cursor if row is not None)
         else:
-            return cursor.execute(base_stmt + ' WHERE sign=? and keyword=?', (str(zodiac_sign_ordinal), keyword))
+            synonyms = get_present_synonyms(conn.cursor(), args.keyword)
+            cursor.execute(base_stmt + ' WHERE sign=? and keyword=?', (str(zodiac_sign_ordinal), keyword))
+            cursor.execute(base_stmt + ' WHERE sign=? and keyword in (%s)' % ','.join(('?' for _ in synonyms)), (str(zodiac_sign_ordinal), *synonyms))
+            return ((row[0], row[1] if row[2] is keyword else synonym_influence*row[1]*sqrt(len(synonyms))) for row in cursor) if with_rating else ((row[0],) for row in cursor if row is not None)
 
 if __name__ == '__main__':
     args = _parser.parse_args()
@@ -63,10 +79,7 @@ if __name__ == '__main__':
         if not keyword_valid:
             print('Not enough horoscopes for the given keyword', sys.stderr)
             sys.exit(1)
-        corpus = get_corpus(conn.cursor(), zodiac_sign=None, keyword=args.keyword)
-        if args.use_synonym:
-            print(get_synonyms(args.keyword))
-            sys.exit(0)
+        corpus = get_corpus(conn, zodiac_sign=None, with_rating=True, with_synonyms=args.use_synonym, keyword=args.keyword)
         mk = Markov(corpus, order=args.order)
         print(mk.generate_text(5))
         print(mk.generate_text(5))
