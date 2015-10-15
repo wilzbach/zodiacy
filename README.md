@@ -52,5 +52,6 @@ Requirements
 * GNU parallel
 * perl
 * python3
+  * nltk
   * wordnik-py3
 * sqlite3

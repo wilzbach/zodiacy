@@ -40,8 +40,8 @@ class Markov:
         Returns:
             transition probabilities
         """
-        self.transitions = defaultdict(lambda: defaultdict(int))
-        self.emissions = defaultdict(lambda: defaultdict(int))
+        self.transitions = defaultdict(lambda: defaultdict(float))
+        self.emissions = defaultdict(lambda: defaultdict(float))
 
         for corpus_entry in corpus:
             if corpus_entry[0] is None:
