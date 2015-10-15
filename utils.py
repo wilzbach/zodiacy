@@ -13,26 +13,26 @@ def get_suffixes(arr):
     return (arr[i:] for i in range(len(arr)))
 
 SENTENCE_STOPS = [".", "?", ",", ":", ";", "'"]
-CONVERT_WORDS = {
-    '\'ll': 'will',
-    'n\'t': 'not',
-    '\'re': 'are'
-}
+JOIN_WITH_BEFORE = ['n\'t', '\'ll', '\'re', '\'ve', '\'s']
 
 
-def join_sentence(tokens):
+def join_tokens_to_sentences(tokens):
     """ Correctly joins tokens to multiple sentences
+
+    Instead of always placing white-space between the tokens, it will distinguish
+    between the next symbol and *not* insert whitespace if it is either a sentence
+    symbol (e.g. '.', or '?') or word to join (e.g. 'll or n't)
+
     Args:
         tokens: array of string tokens
     Returns:
         Joint sentences as one string
     """
     text = ""
-    for entry in tokens:
-        if entry not in SENTENCE_STOPS:
+    for (entry, next_entry) in zip(tokens, tokens[1:]):
+        text += entry
+        if next_entry not in SENTENCE_STOPS and next_entry not in JOIN_WITH_BEFORE:
             text += " "
-        if entry in CONVERT_WORDS:
-            text += CONVERT_WORDS[entry]
-        else:
-            text += entry
-    return text[1:]
+
+    text += tokens[-1]
+    return text
