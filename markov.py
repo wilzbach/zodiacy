@@ -3,30 +3,32 @@ from itertools import chain
 from nltk import word_tokenize
 import random
 from collections import deque, defaultdict
+import utils
 
 __author__ = "Project Zodiacy"
 __copyright__ = "Copyright 2015, Project Zodiacy"
 
 
 class Markov:
-    """
-    A simple markov chain implementation
+    """ A simple markov chain implementation
+
+        Attributes:
+            corpus: the given corpus (a corpus_entry needs to be a tuple or array)
+            order: the maximal order
     """
 
     def __init__(self, corpus, order=1):
-        """
-        """
+        """ Inits the Markov Chain with a given corpus and order """
         self.order = order
         self._start_symbol = '^'
         self._end_symbol = '$'
         self.transitions = self._compute_transitions(corpus, self.order)
 
     def _compute_transitions(self, corpus, order=1):
-        """
-        generates the transition probabilities of a corpus
+        """ Generates the transition probabilities of a corpus
         :param corpus: the given corpus (a corpus_entry needs to be a tuple or array)
         :param order: the maximal order
-        :return: transition probabilities
+        :returns: transition probabilities
         """
         transitions = defaultdict(lambda: defaultdict(int))
         distinct_tokens = set()
@@ -42,8 +44,7 @@ class Markov:
             # count the occurences of "present | past"
             for token in chain(tokens, [self._end_symbol]):
                 distinct_tokens.add(token)
-                past = tuple(last_tokens)
-                for suffix in (past[i:] for i in range(len(past))):
+                for suffix in utils.get_suffixes(last_tokens):
                     transitions[suffix][token] += rating
 
                 last_tokens.append(token)
@@ -71,19 +72,23 @@ class Markov:
             if summed_probability > random_value:
                 return item
 
-    def generate_text(self, count):
-        last_tokens = [self._start_symbol] * self.order
+    def generate_text(self, nr_of_entries):
+        """ Generates sentences from a given corpus
+        TODO: we DONT limit
+        Args:
+            nr_of_entries: Maximal number of entries to generate
+        """
+        last_tokens = deque([self._start_symbol] * self.order, maxlen=self.order)
         generated_tokens = []
         while last_tokens[-1] != self._end_symbol:
-            new_token = self.generate_next_token(tuple(last_tokens))
-            last_tokens = last_tokens[1:]
+            new_token = self._generate_next_token(last_tokens)
             last_tokens.append(new_token)
             generated_tokens.append(new_token)
 
         return generated_tokens[:-1]
 
-    def generate_next_token(self, past, precondition=lambda x: True):
-        for key in [past[i:] for i in range(len(past))]:
+    def _generate_next_token(self, past, precondition=lambda x: True):
+        for key in utils.get_suffixes(past):
             if key in self.transitions:
                 possible_transitions = deepcopy(self.transitions[key])
                 for key in self.transitions[key].keys():
