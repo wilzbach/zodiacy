@@ -17,7 +17,7 @@ _WORDNICK_API_KEY = '4ee1d234e4faae42a13680b776b0e348960adc62f6f7238ed'
 
 _parser = argparse.ArgumentParser(description="Awesome horoscope generator")
 _parser.add_argument('-d', '--debug', dest='debug',
-                     help='Show debug logs', action='store_true')
+                     help='show debug logs', action='store_true')
 _parser.add_argument('-a', '--database', dest='database',
                      required=True, help='sqlite database file')
 _parser.add_argument('-s', '--sign', dest='sign',
@@ -29,7 +29,9 @@ _parser.add_argument('-t', '--threshold', dest='threshold',
 _parser.add_argument('-o', '--order', dest='order',
                      help='order of the used markov chain', type=int, default=4)
 _parser.add_argument('-c', '--synonym', dest='use_synonym',
-                     help='Use also synonyms of keywords for generation', action='store_true')
+                     help='use also synonyms of keywords for generation', action='store_true')
+_parser.add_argument('-m', '--markov_type', dest='markov_type', choices=('markov', 'hmm'),
+                     help='Markov type to use (default: markov)', default="markov", action='store')
 
 
 def config_logging(level):
@@ -51,5 +53,6 @@ if __name__ == '__main__':
         corpus = Corpus(conn, zodiac_sign=args.sign, with_rating=True,
                         with_synonyms=args.use_synonym, keyword=args.keyword,
                         wordnik_api_url=_WORDNICK_API_URL, wordnik_api_key=_WORDNICK_API_KEY)
-    mk = Markov(corpus, order=args.order, use_emissions=False)
-    print(mk.generate_text())
+    mk = Markov(corpus, order=args.order,
+                use_emissions=args.markov_type == "hmm")
+    print(mk.generate_text(args.markov_type))

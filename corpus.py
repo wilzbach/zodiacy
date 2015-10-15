@@ -43,6 +43,7 @@ class Corpus():
         self._build()
 
     def __str__(self):
+        """ dumps the class on print - useful for debugging """
         return str(self.__dict__)
 
     def _get_zodiac_sign(self, zodiac_sign=None):

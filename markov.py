@@ -18,10 +18,10 @@ class Markov:
         Attributes:
             corpus: the given corpus (a corpus_entry needs to be a tuple or array)
             order: the maximal order
-            enable_emissions: allows to turn off the expensive nltk tagging
+            use_emissions: allows to turn off the expensive nltk tagging
     """
 
-    def __init__(self, corpus, order=1, emissions=True):
+    def __init__(self, corpus, order=1, use_emissions=True):
         """ Initializes the Markov Chain with a given corpus and order """
         assert order >= 1, "Invalid Markov chain order"
         assert order <= 20, "Markov chain order too high"
@@ -29,8 +29,8 @@ class Markov:
         self.order = order
         self._start_symbol = '^'
         self._end_symbol = '$'
+        self._use_emissions = use_emissions
         self._compute_transitions(corpus, self.order)
-        self._enable_emissions = emissions
 
     def _compute_transitions(self, corpus, order=1):
         """ Generates the transition probabilities of a corpus
@@ -47,7 +47,7 @@ class Markov:
             if corpus_entry[0] is None:
                 # there are invalid entries
                 continue
-            if self._enable_emissions:
+            if self._use_emissions:
                 tokens = pos_tag(word_tokenize(corpus_entry[0]))
             else:
                 tokens = ((w, None) for w in word_tokenize(corpus_entry[0]))
@@ -105,7 +105,7 @@ class Markov:
 
     def _generate_next_token(self, past):
         key = tuple(past)
-        assert key in self.transitions
+        assert key in self.transitions, "%s" % str(key)
         return self._weighted_choice(self.transitions[key].items(),
                                      probability_sum=sum(self.transitions[key].values()))
 
