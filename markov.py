@@ -1,11 +1,11 @@
 from collections import deque, defaultdict
 from itertools import chain
 import warnings
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore",category=DeprecationWarning)
-    from nltk import word_tokenize
 import random
 import utils
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+    from nltk import word_tokenize
 
 __author__ = "Project Zodiacy"
 __copyright__ = "Copyright 2015, Project Zodiacy"
