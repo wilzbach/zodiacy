@@ -50,7 +50,7 @@ _parser.add_argument('--prob-hmm-emissions', dest='prob_hmm_emissions', type=res
 _parser.add_argument('-y', '--synonyms-emission', dest='use_synonyms_emission',
                      help='use synonyms on emissions', action='store_true')
 _parser.add_argument('--prob-syn-emissions', dest='prob_synonyms_emission', type=restricted_weight,
-                     help='probability to emit synonyms', default=0.5)
+                     help='probability to emit synonyms', default=0.2)
 
 
 def config_logging(level):

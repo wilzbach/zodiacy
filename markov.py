@@ -14,6 +14,8 @@ __author__ = "Project Zodiacy"
 __copyright__ = "Copyright 2015, Project Zodiacy"
 
 TOKENS_FOR_SYNONYMS = ["VB", "JJ", "NN", "RB"]
+MAP_TOKEN_TO_WORDNET = {"VB": wn.VERB,
+                        "NN": wn.NOUN, "JJ": wn.ADJ, "RB": wn.ADV}
 logger = logging.getLogger('root')
 
 
@@ -147,17 +149,18 @@ class Markov:
             last_tokens.append(new_token)
             last_emissions.append(emission)
             if self.use_synonyms:
-                if random.random() > self.prob_use_synonyms:
+                if random.random() <= self.prob_use_synonyms:
                     emission = self._search_synonym(emission)
             generated_tokens.append(emission)
         text = generated_tokens[:-1]
         return utils.join_tokens_to_sentences(text)
 
     def _search_synonym(self, word):
-        """ Tries to find synonyms using the wordnet API
-        Only searches synonyms for verbs (VB), adjectives (JJ), nouns (NN)
+        """ Tries to find synonyms using the WordNet API
+         - Only searches synonyms for verbs (VB), adjectives (JJ), nouns (NN)
         and adverbs(RB).
-        The synonym is randomly chosen from all available ones.
+        - Searches only for synonyms with the same part of speech (e.g. verb, noun)
+        - The synonym is randomly chosen from all available ones.
 
         Args:
             word: word to replace with a synonym
@@ -165,20 +168,23 @@ class Markov:
             synonym if we found a synonym
             word if there are no synonyms
         """
-        if pos_tag([word])[0][1] in TOKENS_FOR_SYNONYMS:
+        part_of_speech = pos_tag([word])[0][1]
+        if part_of_speech in TOKENS_FOR_SYNONYMS:
+            assert part_of_speech in MAP_TOKEN_TO_WORDNET
+            wn_pos = MAP_TOKEN_TO_WORDNET[part_of_speech]
             syns = [y for y in (x.lemma_names()[0]
-                                for x in wn.synsets(word)) if y != word]
+                                for x in wn.synsets(word, wn_pos)) if y != word]
             if len(syns) > 0:
                 w = random.choice(syns)
+                # WordNet API returns '_' for whitespace
+                w = w.replace("_", " ")
                 logger.debug("found synonym %s for %s", w, word)
         return word
 
     def generate_text(self, generation_type='markov'):
         """ Generates sentences from a given corpus
-        TODO:
-            we DONT limit the sentence length
         Args:
-            generation_type: 'markov' | 'hmm'
+            generation_type: 'markov' | 'hmm' | 'hmm_past'
         Returns:
             Properly formatted string of generated sentences
         """
