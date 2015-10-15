@@ -40,7 +40,6 @@ class Corpus():
         self._filters = []
         self._filters_values = []
         self._table_name = "horoscopes"
-        self._build()
 
     def __str__(self):
         """ dumps the class on print - useful for debugging """
@@ -153,25 +152,34 @@ class Corpus():
 
     def __iter__(self):
         """ Lazy corpus iterator """
+        self._build()
         return self
 
     def __next__(self):
         """ returns the corpus lazy """
         row = next(self.cursor, None)
         if row is None:
+            # maybe someone wants to access the results again
             raise StopIteration
 
         rating = None
         if self.with_rating:
             rating = row[1]
         if self.with_synonyms:
+            if row[0] is None:
+                # filter invalid entries
+                logger.debug("invalid row %s", row)
+                return self.__next__()
             if row[0] == self.keyword:
                 rating = row[1]
             else:
                 rating = self.synonym_influence * \
                     row[1] * sqrt(len(self.synonyms))
 
-        return (row[0], rating)
+        if rating is None:
+            return (row[0],)
+        else:
+            return (row[0], rating)
 
     def _get_synonyms(self, keyword):
         """ Queries Wordnik for synonyms """
