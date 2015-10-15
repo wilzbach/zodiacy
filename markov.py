@@ -28,9 +28,11 @@ class Markov:
 
     def _compute_transitions(self, corpus, order=1):
         """ Generates the transition probabilities of a corpus
-        :param corpus: the given corpus (a corpus_entry needs to be a tuple or array)
-        :param order: the maximal order
-        :returns: transition probabilities
+        Args:
+            corpus: the given corpus (a corpus_entry needs to be a tuple or array)
+            order: the maximal order
+        Returns:
+            transition probabilities
         """
         transitions = defaultdict(lambda: defaultdict(int))
         distinct_tokens = set()
@@ -67,9 +69,12 @@ class Markov:
 
     def generate_text(self, nr_of_entries):
         """ Generates sentences from a given corpus
-        TODO: we DONT limit
+        TODO:
+            we DONT limit
         Args:
             nr_of_entries: Maximal number of entries to generate
+        Returns:
+            Properly formatted string of generated sentences
         """
         last_tokens = deque([self._start_symbol] *
                             self.order, maxlen=self.order)

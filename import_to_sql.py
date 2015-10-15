@@ -32,7 +32,7 @@ with open(args.inFile) as f:
     for horoscopesStr in f:
         horoscopes = json.loads(horoscopesStr)
         if isinstance(horoscopes, dict):
-            # WHY do they use different formats?
+            # WHY does tarot.com use different formats?
             horoscopes = horoscopes.values()
         for h in horoscopes:
             c.execute("INSERT INTO horoscopes VALUES (?,?,?,?,?,?,?)",
