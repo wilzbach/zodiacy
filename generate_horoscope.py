@@ -21,7 +21,7 @@ _parser.add_argument('-o', '--order', dest='order', help='order of the used mark
 
 def keyword_valid(cursor, keyword, threshold=10):
     """ Checks whether enough horoscopes are present for the keyword """
-    count = cursor.execute('Select count(*) as count WHERE keyword=?', (keyword,))
+    count = cursor.execute('SELECT COUNT(*) AS count WHERE keyword=?', (keyword,))
     if len(count) > 0 and count[0] > threshold:
         return True
 
