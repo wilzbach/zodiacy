@@ -18,8 +18,8 @@ def compute_transitions(tokens_list, order=1):
         for token in chain(tokens, [_end_symbol]):
             distinct_tokens.add(token) 
             past = tuple(last_tokens)
-            suffixes = [past[i:] for i in range(len(past))]
-            for suffix in suffixes:
+            #suffixes = [past[i:] for i in range(len(past))]
+            for suffix in (past[i:] for i in range(len(past))):
                 if suffix not in transitions:
                     transitions[suffix] = {token : 1}
                 else:
