@@ -12,7 +12,7 @@ __author__ = "Project Zodiacy"
 __copyright__ = "Copyright 2015, Project Zodiacy"
 
 
-_parser = argparse.ArgumentParser(description="Awesome SQLite importer")
+_parser = argparse.ArgumentParser(description="Awesome horoscope generator")
 _parser.add_argument('-d', '--database', dest='database', required=True, help='sqlite database file')
 _parser.add_argument('-s', '--sign', dest='sign', help='zodiac sign to generate', default=None)
 _parser.add_argument('-k', '--keyword', dest='keyword', help='keyword for the horoscope', default=None)
@@ -21,8 +21,9 @@ _parser.add_argument('-o', '--order', dest='order', help='order of the used mark
 
 def keyword_valid(cursor, keyword, threshold=10):
     """ Checks whether enough horoscopes are present for the keyword """
-    # TODO implement
-    return True
+    count = cursor.execute('Select count(*) as count WHERE keyword=?', (keyword,))
+    if len(count) > 0 and count[0] > threshold:
+        return True
 
 def get_corpuses(cursor, with_rating=False, zodiac_sign=None, keyword=None):
     """ Returns a cursor with all horoscopes for the given parameters """
@@ -50,7 +51,7 @@ if __name__ == '__main__':
     args = _parser.parse_args()
 
     with sqlite3.connect(args.database) as conn:
-        if not keyword_valid: 
+        if not keyword_valid:
             print('Not enough horoscopes for the given keyword', sys.stderr)
             sys.exit(1)
         corpuses = get_corpuses(conn.cursor(), zodiac_sign=None, keyword=args.keyword)
