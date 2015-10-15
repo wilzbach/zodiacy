@@ -92,6 +92,3 @@ if __name__ == '__main__':
         corpus = get_corpus(conn, zodiac_sign=args.sign, with_rating=True, with_synonyms=args.use_synonym, keyword=args.keyword)
         mk = Markov(corpus, order=args.order)
         print(mk.generate_text(5))
-        print(mk.generate_text(5))
-        print(mk.generate_text(5))
-        print(mk.generate_text(5))
