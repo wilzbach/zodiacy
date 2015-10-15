@@ -1,8 +1,8 @@
+from collections import deque, defaultdict
 from copy import deepcopy
 from itertools import chain
 from nltk import word_tokenize
 import random
-from collections import deque, defaultdict
 import utils
 
 __author__ = "Project Zodiacy"
