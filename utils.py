@@ -11,3 +11,28 @@ def get_suffixes(arr):
     """
     arr = tuple(arr)
     return (arr[i:] for i in range(len(arr)))
+
+SENTENCE_STOPS = [".", "?", ",", ":", ";", "'"]
+CONVERT_WORDS = {
+    '\'ll': 'will',
+    'n\'t': 'not',
+    '\'re': 'are'
+}
+
+
+def join_sentence(tokens):
+    """ Correctly joins tokens to multiple sentences
+    Args:
+        tokens: array of string tokens
+    Returns:
+        Joint sentences as one string
+    """
+    text = ""
+    for entry in tokens:
+        if entry not in SENTENCE_STOPS:
+            text += " "
+        if entry in CONVERT_WORDS:
+            text += CONVERT_WORDS[entry]
+        else:
+            text += entry
+    return text[1:]

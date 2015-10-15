@@ -57,3 +57,6 @@ if __name__ == '__main__':
         corpus = get_corpus(conn.cursor(), zodiac_sign=None, keyword=args.keyword)
         mk = Markov(corpus, order=args.order)
         print(mk.generate_text(5))
+        print(mk.generate_text(5))
+        print(mk.generate_text(5))
+        print(mk.generate_text(5))
