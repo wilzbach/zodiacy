@@ -2,6 +2,7 @@ import collections
 import logging
 from math import sqrt
 from wordnik import swagger, WordApi
+from .utils import weighted_choice
 
 """corpus.py: Generates horoscopes based provided corpuses"""
 
@@ -101,7 +102,7 @@ class Corpus():
             filters += " AND ".join(self._filters)
         return filters
 
-    def _execute_and_log(self, base_stmt, values):
+    def _execute_and_log(self, base_stmt, values=[]):
         """ execute logs the entire SQL string
         This is expensive as we need to make a request to our SQLite database.
         Hence it is only performed when the debugging is enabled - the level
@@ -113,7 +114,8 @@ class Corpus():
                     "SELECT " + ", ".join(["quote(?)" for i in values]), values)
                 quoted_values = self.cursor.fetchone()
                 for quoted_value in quoted_values:
-                    sql_with_vals = sql_with_vals.replace('?', str(quoted_value), 1)
+                    sql_with_vals = sql_with_vals.replace(
+                        '?', str(quoted_value), 1)
 
             logger.debug("query: %s", sql_with_vals)
 
@@ -158,7 +160,7 @@ class Corpus():
     def __next__(self):
         """ returns the corpus lazy """
         row = next(self.cursor, None)
-        if row is None:
+        if row is None or row[0] is None:
             # maybe someone wants to access the results again
             raise StopIteration
 
@@ -170,7 +172,7 @@ class Corpus():
                 # filter invalid entries
                 logger.debug("invalid row %s", row)
                 return self.__next__()
-            if row[0] == self.keyword:
+            if row[0] == self.keyword or len(self.synonyms) == 0:
                 rating = row[1]
             else:
                 rating = self.synonym_influence * \
@@ -181,11 +183,26 @@ class Corpus():
         else:
             return (row[0], rating)
 
+    def random_keyword(self):
+        valid_keywords = [k for k in self.list_keywords() if k[1] >= self.threshold]
+        self.keyword = weighted_choice(valid_keywords)
+        logger.debug("keyword selected: %s", self.keyword)
+
+    def list_keywords(self):
+        self._execute_and_log(("SELECT keyword, count(*) as count FROM horoscopes "
+                               "WHERE length(keyword) > 0 GROUP BY keyword ORDER BY count desc"))
+        return self.cursor.fetchall()
+
     def _get_synonyms(self, keyword):
         """ Queries Wordnik for synonyms """
         client = swagger.ApiClient(self.wordnik_api_key, self.wordnik_api_url)
         word_api = WordApi.WordApi(client)
-        return word_api.getRelatedWords(keyword, relationshipTypes='synonym')[0].words
+        words = word_api.getRelatedWords(keyword, relationshipTypes='synonym')
+        if words is None or len(words) == 0:
+            return []
+        else:
+            print("w", [w.words for w in words])
+            return words[0].words
 
     def get_present_synonyms(self):
         """ Compares Wordnik result with present synonyms in DB

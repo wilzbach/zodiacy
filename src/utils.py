@@ -13,6 +13,7 @@ def get_suffixes(arr):
         Array of all possible suffixes (as tuples)
     """
     arr = tuple(arr)
+    return [arr]
     return (arr[i:] for i in range(len(arr)))
 
 

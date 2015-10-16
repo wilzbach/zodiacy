@@ -6,6 +6,8 @@ import sqlite3
 import logging
 from .corpus import Corpus
 from os import path
+import signal
+signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
 """generate_horoscope.py: Generates horoscopes based provided corpuses"""
 
@@ -19,7 +21,8 @@ _WORDNICK_API_KEY = '4ee1d234e4faae42a13680b776b0e348960adc62f6f7238ed'
 def restricted_weight(x, max_range=1.0):
     x = float(x)
     if x < 0.0 or x > max_range:
-        raise argparse.ArgumentTypeError("%r not in range [0.0, %.2f]" % (x, max_range))
+        raise argparse.ArgumentTypeError(
+            "%r not in range [0.0, %.2f]" % (x, max_range))
     return x
 
 here = path.abspath(path.dirname(__file__))
@@ -37,6 +40,8 @@ _parser.add_argument('-t', '--threshold', dest='threshold',
                      help='minimum count of horoscopes for the given filters', type=int, default=10)
 _parser.add_argument('-o', '--order', dest='order',
                      help='order of the used markov chain', type=int, default=4)
+_parser.add_argument('-n', '--horoscopes', dest='nr_horoscopes', choices=range(1, 10),
+                     help='number of horoscopes', type=int, default=1)
 _parser.add_argument('-c', '--synonyms-generation', dest='use_synonyms_generation',
                      help='additionally use synonyms of keywords for generation', action='store_true')
 _parser.add_argument('-m', '--markov_type', dest='markov_type', choices=('markov', 'hmm', 'hmm_past'),
@@ -54,6 +59,12 @@ _parser.add_argument('-y', '--synonyms-emission', dest='use_synonyms_emission',
 _parser.add_argument('--prob-syn-emissions', dest='prob_synonyms_emission', type=restricted_weight,
                      help='probability to emit synonyms', default=0.3)
 
+_parser.add_argument('--list-keywords', dest='list_keywords', action='store_true',
+                     help='show all available keywords')
+
+_parser.add_argument('-r', '--random-keyword', dest='random_keyword', action='store_true',
+                     help='select keyword randomly (weighted on occurrence)')
+
 
 def config_logging(level):
     formatter = logging.Formatter(
@@ -68,9 +79,6 @@ def config_logging(level):
 def main():
     args = _parser.parse_args()
 
-    # loading this modules takes 2s
-    from .markov import Markov
-
     level = logging.DEBUG if args.debug else logging.WARNING
     config_logging(level)
 
@@ -78,13 +86,23 @@ def main():
         corpus = Corpus(conn, zodiac_sign=args.sign, with_rating=True,
                         with_synonyms=args.use_synonyms_generation, keyword=args.keyword,
                         wordnik_api_url=_WORDNICK_API_URL, wordnik_api_key=_WORDNICK_API_KEY)
-    mk = Markov(corpus, order=args.order,
-                use_emissions=args.markov_type[0:3] == "hmm",
-                prob_hmm_states=args.prob_hmm_states,
-                prob_hmm_emissions=args.prob_hmm_emissions,
-                use_synonyms=args.use_synonyms_emission,
-                prob_use_synonyms=args.prob_synonyms_emission)
-    print(mk.generate_text(args.markov_type))
+        if args.random_keyword:
+            corpus.random_keyword()
+
+    if args.list_keywords:
+        for row in corpus.list_keywords():
+            print("%-4s%s" % (row[1], row[0]))
+    else:
+        from .markov import Markov
+        mk = Markov(corpus, order=args.order,
+                    use_emissions=args.markov_type[0:3] == "hmm",
+                    prob_hmm_states=args.prob_hmm_states,
+                    prob_hmm_emissions=args.prob_hmm_emissions,
+                    use_synonyms=args.use_synonyms_emission,
+                    prob_use_synonyms=args.prob_synonyms_emission)
+
+        for _ in range(args.nr_horoscopes):
+            print(mk.generate_text(args.markov_type))
 
 if __name__ == '__main__':
     main()
