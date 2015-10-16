@@ -45,19 +45,22 @@ Build you own queries
 
 e.g.
 
-- [`http://zodiacy.parce.li/q?keyword=pride&nr_horoscopes=5&format=json`](http://zodiacy.parce.li/q?keyword=pride&nr_horoscopes=5&format=json)
+- [`http://zodiacy.parce.li/q?keyword=pride&nr_horoscopes=5&`](http://zodiacy.parce.li/q?keyword=pride&nr_horoscopes=5)
 
-- [`http://zodiacy.parce.li/q?sign=aries&order=2`](http://zodiacy.parce.li/q?sign=aries&order=2)
+- [`http://zodiacy.parce.li/q?keyword=discomfort&nr_horoscopes=5&format=json`](http://zodiacy.parce.li/q?keyword=discomfort&nr_horoscopes=5&format=json)
 
-- [`http://zodiacy.parce.li/q?sign=aries&use_ratings=1`](http://zodiacy.parce.li/q?sign=aries&use_ratings=1)
+- [`http://zodiacy.parce.li/q?keyword=patience&use_ratings=1`](http://zodiacy.parce.li/q?keyword=patience&use_ratings=1)
 
-- [`http://zodiacy.parce.li/q?keyword=patience&markov_type=hmm_past`](http://zodiacy.parce.li/q?keyword=patience&markov_type=hmm_past)
+- [`http://zodiacy.parce.li/q?keyword=pride&markov_type=hmm_past`](http://zodiacy.parce.li/q?keyword=patience&markov_type=hmm_past)
 
 - [`http://zodiacy.parce.li/q?sign=aries&order=2`](http://zodiacy.parce.li/q?sign=aries&order=2)
 
 - [`http://zodiacy.parce.li/q?sign=aries&use_synonym_emissions=1`](http://zodiacy.parce.li/q?sign=aries&use_synonym_emissions=1)
 
 - [`http://zodiacy.parce.li/q?keyword=patience&use_synonyms_generation=1`](http://zodiacy.parce.li/q?keyword=patience&use=synonyms_generation=1)
+
+- [`http://zodiacy.parce.li/q`](http://zodiacy.parce.li/q)
+
 
 ... and a lot more :)
 
