@@ -5,10 +5,11 @@ import os
 import sqlite3
 import sys
 from os import path
-from bottle import route, run, response, static_file
+from bottle import route, run, response
+import bottle
 from json import dumps
 from zodiacy.wrapper import wrap_calls, wrap_corpus
-from decorate import checkParams
+from srv.decorate import checkParams
 import markdown
 import warnings
 with warnings.catch_warnings(record=True):
@@ -85,5 +86,7 @@ def list_keywords():
     response.content_type = 'application/json'
     return dumps(gen_corpus().list_keywords())
 
+if __name__ == "__main__":
+    run(host='localhost', port=8080)
 
-run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+app = bottle.default_app()
