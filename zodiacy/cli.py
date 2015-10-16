@@ -34,9 +34,9 @@ _parser.add_argument('-k', '--keyword', dest='keyword',
                      help='keyword for the horoscope', default=None)
 _parser.add_argument('-t', '--threshold', dest='threshold',
                      help='minimum count of horoscopes for the given filters', type=int, default=10)
-_parser.add_argument('-o', '--order', dest='order', choice=range(1, 20),
+_parser.add_argument('-o', '--order', dest='order', choices=range(1, 20),
                      help='order of the used markov chain', type=int, default=4)
-_parser.add_argument('-o', '--order-emissions', dest='order_emissions', choice=range(1, 20),
+_parser.add_argument('--order-emissions', dest='order_emissions', choices=range(1, 20),
                      help='max. order to look back at prev. emissions (HMM)', type=int, default=1)
 
 _parser.add_argument('-n', '--horoscopes', dest='nr_horoscopes', choices=range(1, 10),
