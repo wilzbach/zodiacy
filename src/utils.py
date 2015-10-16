@@ -1,4 +1,5 @@
 from collections import deque
+import random
 
 __author__ = "Project Zodiacy"
 __copyright__ = "Copyright 2015, Project Zodiacy"
@@ -29,7 +30,7 @@ def prefilled_buffer(start_element, length=-1):
 
 SENTENCE_STOPS = [".", "?", ",", ":", ";", "'"]
 REPLACE_WORDS = {'n\'t': 'not', '\'ll': 'will',
-                 '\'re': 'are', '\'ve': 'have', '\'s': 'is', 'ca': 'can'}
+                 '\'re': 'are', '\'ve': 'have', '\'s': 'is', 'ca': 'can', 'wo': 'will'}
 
 
 def join_tokens_to_sentences(tokens):
@@ -58,8 +59,8 @@ def expanding_words(words):
     """ Transforms words into a their expanded form - replaces all
     abbreviations like "'ll" or "n't"
 
-    There are some special case like can't (in tokens ("ca", "n't") where we want
-    to replace both forms
+    There are some special case like can't (in tokens ("ca", "n't")) or won't
+    where we want to replace both forms
 
     Args:
         words: words iterator to search and replace
@@ -71,3 +72,20 @@ def expanding_words(words):
             yield REPLACE_WORDS[word]
         else:
             yield word
+
+
+def weighted_choice(item_probabilities):
+    """ Randomly choses an item according to defined weights
+    Args:
+        item_probabilities: list of (item, probability)-tuples
+    Returns:
+        random item according to the given weights
+    """
+    probability_sum = sum(x[1] for x in item_probabilities)
+    assert probability_sum > 0
+    random_value = random.random() * probability_sum
+    summed_probability = 0
+    for item, value in item_probabilities:
+        summed_probability += value
+        if summed_probability > random_value:
+            return item

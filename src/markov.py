@@ -3,19 +3,16 @@ from itertools import chain
 import warnings
 import logging
 import random
-import utils
+from . import utils
+from .synonyms import search_synonym
 with warnings.catch_warnings(record=True):
     # we need to workaround the Python bug due to simplefilter('ignore')
     warnings.filterwarnings("always", category=DeprecationWarning)
     from nltk import word_tokenize, pos_tag
-    from nltk.corpus import wordnet as wn
 
 __author__ = "Project Zodiacy"
 __copyright__ = "Copyright 2015, Project Zodiacy"
 
-TOKENS_FOR_SYNONYMS = ["VB", "JJ", "NN", "RB"]
-MAP_TOKEN_TO_WORDNET = {"VB": wn.VERB,
-                        "NN": wn.NOUN, "JJ": wn.ADJ, "RB": wn.ADV}
 logger = logging.getLogger('root')
 
 
@@ -150,36 +147,10 @@ class Markov:
             last_emissions.append(emission)
             if self.use_synonyms:
                 if random.random() <= self.prob_use_synonyms:
-                    emission = self._search_synonym(emission)
+                    emission = search_synonym(emission)
             generated_tokens.append(emission)
         text = generated_tokens[:-1]
         return utils.join_tokens_to_sentences(text)
-
-    def _search_synonym(self, word):
-        """ Tries to find synonyms using the WordNet API
-         - Only searches synonyms for verbs (VB), adjectives (JJ), nouns (NN)
-        and adverbs(RB).
-        - Searches only for synonyms with the same part of speech (e.g. verb, noun)
-        - The synonym is randomly chosen from all available ones.
-
-        Args:
-            word: word to replace with a synonym
-        Returns:
-            synonym if we found a synonym
-            word if there are no synonyms
-        """
-        part_of_speech = pos_tag([word])[0][1]
-        if part_of_speech in TOKENS_FOR_SYNONYMS:
-            assert part_of_speech in MAP_TOKEN_TO_WORDNET
-            wn_pos = MAP_TOKEN_TO_WORDNET[part_of_speech]
-            syns = [y for y in (x.lemma_names()[0]
-                                for x in wn.synsets(word, wn_pos)) if y != word]
-            if len(syns) > 0:
-                w = random.choice(syns)
-                # WordNet API returns '_' for whitespace
-                w = w.replace("_", " ")
-                logger.debug("found synonym %s for %s", w, word)
-        return word
 
     def generate_text(self, generation_type='markov'):
         """ Generates sentences from a given corpus
@@ -208,12 +179,12 @@ class Markov:
         """ generates next token based previous states """
         key = tuple(past_states)
         assert key in transitions, "%s" % str(key)
-        return self._weighted_choice(transitions[key].items())
+        return utils.weighted_choice(transitions[key].items())
 
     def _emitHMM(self, token_type, past_states, past_emissions):
         """ emits a word based on previous tokens """
         assert token_type in self.emissions
-        return self._weighted_choice(self.emissions[token_type].items())
+        return utils.weighted_choice(self.emissions[token_type].items())
 
     def _emitHMM_with_past(self, token_type, past_states, past_emissions):
         """ emits a word based on previous states (=token) and previous emissions (=words)
@@ -226,18 +197,5 @@ class Markov:
         if key_emissions in self.emissions_past[token_type]:
             states_emissions = [(x[0], x[1] * self.prob_hmm_emissions) for x in self.emissions_past[
                                 token_type][tuple(past_emissions)].items()]
-            return self._weighted_choice(states_items + states_emissions)
-        return self._weighted_choice(states_items)
-
-    def _weighted_choice(self, item_probabilities):
-        """ Expects a list of (item, probability)-tuples
-        and the sum of all probabilities and returns one entry weighted at random
-        """
-        probability_sum = sum(x[1] for x in item_probabilities)
-        assert probability_sum > 0
-        random_value = random.random() * probability_sum
-        summed_probability = 0
-        for item, value in item_probabilities:
-            summed_probability += value
-            if summed_probability > random_value:
-                return item
+            return utils.weighted_choice(states_items + states_emissions)
+        return utils.weighted_choice(states_items)

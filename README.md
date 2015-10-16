@@ -1,6 +1,20 @@
 Project Zodiacy
 ===============
 
+Install from tarball
+--------------------
+
+```
+pip install --user <tarball>
+```
+
+Install from source
+-------------------
+
+```
+make
+python setup.py clean && python setup.py sdist && python setup.py install --user
+```
 
 
 1) Fetch horoscope data
@@ -39,10 +53,6 @@ make
 12: pisces
 ```
 
-Analysis
---------
-
-
 Requirements
 ------------
 
@@ -50,8 +60,12 @@ Requirements
 * coreutils
 * dateutils
 * GNU parallel
+* GNU make
 * perl
 * python3
   * nltk
   * wordnik-py3
+  * astral
+  * SQLAlchemy
+  * setuptools
 * sqlite3
