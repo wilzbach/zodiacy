@@ -52,7 +52,7 @@ def master():
              prob_synonyms_emission=float,
              markov_type=str,
              nr_horoscopes=int, format=str,
-             use_synonyms=bool, order=int, order_emissions=int)
+             use_synonyms_emission=bool, order=int, order_emissions=int)
 def query(**kws):
     res = gen_wrapper(**kws)
     if "format" in kws and kws["format"] == "json":

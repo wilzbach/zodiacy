@@ -46,7 +46,7 @@ def wrap_corpus(conn, **kws):
 MARKOV_ATTRS = {"prob_hmm_states": "prob_hmm_states",
                 "prob_hmm_emissions": "prob_hmm_emissions",
                 "prob_synonyms_emission": "prob_use_synonyms",
-                "use_synonyms": "use_synonyms",
+                "use_synonyms_emission": "use_synonyms",
                 "order": "order", "order_emissions": "order_emissions"}
 
 
