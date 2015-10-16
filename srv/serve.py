@@ -9,6 +9,7 @@ from bottle import route, run, response, static_file
 from json import dumps
 from zodiacy.wrapper import wrap_calls, wrap_corpus
 from decorate import checkParams
+import markdown
 import warnings
 with warnings.catch_warnings(record=True):
     # we need to workaround the Python bug due to simplefilter('ignore')
@@ -35,8 +36,11 @@ def gen_corpus(**attrs):
 
 @route("/")
 def master():
-    response.content_type = "text/plain"
-    return static_file("README.md", root=lib_path, mimetype="text/plain")
+    response.content_type = "text/html"
+    pfile = open(path.join(lib_path, "README.md"))
+    mdpage = pfile.read()
+    pfile.close()
+    return markdown.markdown(mdpage, extensions=['markdown.extensions.fenced_code'])
 
 
 @route("/q")
