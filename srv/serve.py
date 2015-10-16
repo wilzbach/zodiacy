@@ -64,6 +64,12 @@ def keyword(keyword):
     return gen_wrapper(keyword=keyword)
 
 
+@route("/sign/<sign>")
+def sign(sign):
+    response.content_type = "text/plain"
+    return gen_wrapper(sign=sign)
+
+
 @route("/random-keyword")
 def random_keyword():
     response.content_type = "text/plain"
