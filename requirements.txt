@@ -1,0 +1,4 @@
+wordnik-py3>=2.1.2, wordnik-py3<3
+astral>=0.8.1, astral<1
+nltk>=3.0.4, nltk<4
+SQLAlchemy>=1.0.8,SQLAlchemy<2

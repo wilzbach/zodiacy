@@ -4,8 +4,8 @@
 import argparse
 import sqlite3
 import logging
-from markov import Markov
-from corpus import Corpus
+from .corpus import Corpus
+from os import path
 
 """generate_horoscope.py: Generates horoscopes based provided corpuses"""
 
@@ -22,11 +22,13 @@ def restricted_weight(x, max_range=1.0):
         raise argparse.ArgumentTypeError("%r not in range [0.0, %.2f]" % (x, max_range))
     return x
 
+here = path.abspath(path.dirname(__file__))
+
 _parser = argparse.ArgumentParser(description="Awesome horoscope generator")
 _parser.add_argument('-d', '--debug', dest='debug',
                      help='show debug logs', action='store_true')
 _parser.add_argument('-a', '--database', dest='database',
-                     required=True, help='sqlite database file')
+                     default=path.join(here, 'data', 'zodiac.sqlite'), help='sqlite database file')
 _parser.add_argument('-s', '--sign', dest='sign',
                      help='zodiac sign to generate', default=None)
 _parser.add_argument('-k', '--keyword', dest='keyword',
@@ -50,7 +52,7 @@ _parser.add_argument('--prob-hmm-emissions', dest='prob_hmm_emissions', type=res
 _parser.add_argument('-y', '--synonyms-emission', dest='use_synonyms_emission',
                      help='use synonyms on emissions', action='store_true')
 _parser.add_argument('--prob-syn-emissions', dest='prob_synonyms_emission', type=restricted_weight,
-                     help='probability to emit synonyms', default=0.2)
+                     help='probability to emit synonyms', default=0.3)
 
 
 def config_logging(level):
@@ -62,8 +64,12 @@ def config_logging(level):
     logger.setLevel(level)
     logger.addHandler(handler)
 
-if __name__ == '__main__':
+
+def main():
     args = _parser.parse_args()
+
+    # loading this modules takes 2s
+    from .markov import Markov
 
     level = logging.DEBUG if args.debug else logging.WARNING
     config_logging(level)
@@ -79,3 +85,6 @@ if __name__ == '__main__':
                 use_synonyms=args.use_synonyms_emission,
                 prob_use_synonyms=args.prob_synonyms_emission)
     print(mk.generate_text(args.markov_type))
+
+if __name__ == '__main__':
+    main()
