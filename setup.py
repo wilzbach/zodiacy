@@ -3,9 +3,14 @@
 from setuptools import setup
 from os import path
 from setuptools.command.install import install
+import os
 
 here = path.abspath(path.dirname(__file__))
 readme = path.join(here, 'README.md')
+
+
+def is_heroku():
+    return int(os.environ.get("PORT", -1)) > 0
 
 
 def check_nltk(entries):
@@ -23,8 +28,9 @@ class CustomInstall(install):
 
     def run(self):
         install.run(self)
-        check_nltk([('corpora/wordnet', 'wordnet'),
-                    ('tokenizers/punkt/english.pickle', 'punkt')])
+        if not is_heroku():
+            check_nltk([('corpora/wordnet', 'wordnet'),
+                        ('tokenizers/punkt/english.pickle', 'punkt')])
 
 try:
     import pypandoc
