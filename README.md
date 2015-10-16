@@ -26,7 +26,7 @@ Possible routes
 
 Select a random keyword (weighted):
 
-[`http://zodiacy.parce.li/random-keywords`](http://zodiacy.parce.li/random-keywords)
+[`http://zodiacy.parce.li/random-keyword`](http://zodiacy.parce.li/random-keyword)
 
 See all available keywords:
 
