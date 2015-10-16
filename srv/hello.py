@@ -19,7 +19,7 @@ sys.path.append(lib_path)
 @route("/")
 def hello_world():
         db = path.join(here, '..', 'data', 'zodiac.sqlite')
-        with sqlite3.connect(db) as conn:
+        with sqlite3.connect('file:%s?mode=ro' % db, uri=True) as conn:
             corpus = Corpus(conn, keyword='pride')
 
         mk = Markov(corpus)
