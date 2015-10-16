@@ -40,6 +40,10 @@ Generate a horoscope for you zodiac sign:
 
 [`http://zodiacy.parce.li/sign/aries`](http://zodiacy.parce.li/sign/aries)
 
+Ask the moon:
+
+[`http://zodiacy.parce.li/moon`](http://zodiacy.parce.li/moon)
+
 Build you own queries
 ---------------------
 
@@ -97,6 +101,7 @@ Possible parameters
   --list-keywords       show all available keywords
   -r, --random-keyword  select keyword randomly (weighted on occurrence)
   --ratings             weight states according to ratings
+  --moon                Use current moon phase for the keyword selection
 ```
 
 Description of the acquired horoscopes

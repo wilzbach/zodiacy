@@ -191,9 +191,23 @@ class Corpus():
         logger.debug("keyword selected: %s", self.keyword)
 
     def list_keywords(self):
+        """ lists all available keywords """
         self._execute_and_log(("SELECT keyword, count(*) as count FROM horoscopes "
                                "WHERE length(keyword) > 0 GROUP BY keyword ORDER BY count desc"))
         return self.cursor.fetchall()
+
+    def select_keyword_range(self, min_val=0, max_val=1, val=1):
+        """ evenly maps a val with min and max to the keywords
+        As the mapping is surjective the remaining slice is then weighted_chosen"""
+        kws = [k for k in self.list_keywords() if k[1] >= self.threshold]
+        val_range = max_val - min_val
+        factor = int(len(kws) / val_range)
+        upper_end = val * factor
+        if upper_end < factor:
+            upper_end = factor
+        lower_end = upper_end - factor
+        self.keyword = weighted_choice(kws[lower_end:upper_end])
+        logger.debug("moon keyword selected: %s", self.keyword)
 
     def _get_synonyms(self, keyword):
         """ Queries Wordnik for synonyms """
