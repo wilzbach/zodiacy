@@ -1,20 +1,31 @@
 import logging
 import warnings
 from .utils import weighted_choice
-with warnings.catch_warnings(record=True):
-    # we need to workaround the Python bug due to simplefilter('ignore')
-    warnings.filterwarnings("always", category=DeprecationWarning)
-    from nltk import pos_tag
-    # loading wordnet takes about 1s
-    from nltk.corpus import wordnet as wn
+
+wn_loaded = False
+
+
+def load_wordnet():
+    global wn_loaded, MAP_TOKEN_TO_WORDNET, wn, pos_tag
+    if not wn_loaded:
+        wn_loaded = True
+        with warnings.catch_warnings(record=True):
+            # we need to workaround the Python bug due to simplefilter('ignore')
+            warnings.filterwarnings("always", category=DeprecationWarning)
+            # loading wordnet takes about 1s
+            import nltk
+            # dirty lazy-loading into global space
+            wn = nltk.corpus.wordnet
+            pos_tag = nltk.pos_tag
+
+        MAP_TOKEN_TO_WORDNET = {"VB": wn.VERB,
+                                "NN": wn.NOUN, "JJ": wn.ADJ, "RB": wn.ADV}
 
 __author__ = "Project Zodiacy"
 __copyright__ = "Copyright 2015, Project Zodiacy"
 
 
 TOKENS_FOR_SYNONYMS = ["VB", "JJ", "NN", "RB"]
-MAP_TOKEN_TO_WORDNET = {"VB": wn.VERB,
-                        "NN": wn.NOUN, "JJ": wn.ADJ, "RB": wn.ADV}
 
 logger = logging.getLogger('root')
 
@@ -33,6 +44,7 @@ def search_synonym(word):
         synonym if we found a synonym
         word if there are no synonyms
     """
+    load_wordnet()
     part_of_speech = pos_tag([word])[0][1]
     if part_of_speech in TOKENS_FOR_SYNONYMS:
         assert part_of_speech in MAP_TOKEN_TO_WORDNET

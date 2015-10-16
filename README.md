@@ -8,26 +8,22 @@ Install from tarball
 pip install --user <tarball>
 ```
 
+Please note that due to copyright issues we can't distribute the tarball.
+See the instructions below to build directly from source
+
 Install from source
 -------------------
 
 ```
+git clone https://github.com/greenify/zodiacy
+cd zodiacy
 make
 python setup.py clean && python setup.py sdist && python setup.py install --user
 ```
 
 
-1) Fetch horoscope data
------------------------
-To generate the zodiac-database just run
-
-```
-make
-```
-
-
-2) Description of the acquired horoscopes
------------------------------------------
+Description of the acquired horoscopes
+--------------------------------------
 
 * there are four horoscopes dates with less than 12 horoscopes ("2007-10-13": 11, "2007-10-15":11, "2007-10-18": 7, "2007-10-22": 11)
 * there are 22 horoscopes without a general horoscope (=12)
@@ -53,8 +49,8 @@ make
 12: pisces
 ```
 
-Requirements
-------------
+Dev Requirements
+----------------
 
 * bash
 * coreutils
