@@ -3,9 +3,8 @@
 
 import argparse
 import sqlite3
-import logging
-from .corpus import Corpus
 from os import path
+from .wrapper import wrap_calls, wrap_corpus
 import signal
 signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
@@ -13,9 +12,6 @@ signal.signal(signal.SIGPIPE, signal.SIG_DFL)
 
 __author__ = "Project Zodiacy"
 __copyright__ = "Copyright 2015, Project Zodiacy"
-
-_WORDNICK_API_URL = 'http://api.wordnik.com/v4'
-_WORDNICK_API_KEY = '4ee1d234e4faae42a13680b776b0e348960adc62f6f7238ed'
 
 
 def restricted_weight(x, max_range=1.0):
@@ -38,8 +34,11 @@ _parser.add_argument('-k', '--keyword', dest='keyword',
                      help='keyword for the horoscope', default=None)
 _parser.add_argument('-t', '--threshold', dest='threshold',
                      help='minimum count of horoscopes for the given filters', type=int, default=10)
-_parser.add_argument('-o', '--order', dest='order',
+_parser.add_argument('-o', '--order', dest='order', choice=range(1, 20),
                      help='order of the used markov chain', type=int, default=4)
+_parser.add_argument('-o', '--order-emissions', dest='order_emissions', choice=range(1, 20),
+                     help='max. order to look back at prev. emissions (HMM)', type=int, default=1)
+
 _parser.add_argument('-n', '--horoscopes', dest='nr_horoscopes', choices=range(1, 10),
                      help='number of horoscopes', type=int, default=1)
 _parser.add_argument('-c', '--synonyms-generation', dest='use_synonyms_generation',
@@ -65,44 +64,20 @@ _parser.add_argument('--list-keywords', dest='list_keywords', action='store_true
 _parser.add_argument('-r', '--random-keyword', dest='random_keyword', action='store_true',
                      help='select keyword randomly (weighted on occurrence)')
 
-
-def config_logging(level):
-    formatter = logging.Formatter(
-        fmt='%(asctime)s - %(levelname)s - %(module)s - %(message)s')
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-    logger = logging.getLogger('root')
-    logger.setLevel(level)
-    logger.addHandler(handler)
+_parser.add_argument('--ratings', dest='use_ratings', action='store_true',
+                     help='weight states according to ratings')
 
 
 def main():
-    args = _parser.parse_args()
+    args = vars(_parser.parse_args())
 
-    level = logging.DEBUG if args.debug else logging.WARNING
-    config_logging(level)
-
-    with sqlite3.connect(args.database) as conn:
-        corpus = Corpus(conn, zodiac_sign=args.sign, with_rating=True,
-                        with_synonyms=args.use_synonyms_generation, keyword=args.keyword,
-                        wordnik_api_url=_WORDNICK_API_URL, wordnik_api_key=_WORDNICK_API_KEY)
-        if args.random_keyword:
-            corpus.random_keyword()
-
-    if args.list_keywords:
-        for row in corpus.list_keywords():
-            print("%-4s%s" % (row[1], row[0]))
-    else:
-        from .markov import Markov
-        mk = Markov(corpus, order=args.order,
-                    use_emissions=args.markov_type[0:3] == "hmm",
-                    prob_hmm_states=args.prob_hmm_states,
-                    prob_hmm_emissions=args.prob_hmm_emissions,
-                    use_synonyms=args.use_synonyms_emission,
-                    prob_use_synonyms=args.prob_synonyms_emission)
-
-        for _ in range(args.nr_horoscopes):
-            print(mk.generate_text(args.markov_type))
+    with sqlite3.connect(args["database"]) as conn:
+        if args["list_keywords"]:
+            for row in wrap_corpus(conn, **args).list_keywords():
+                print("%-4s%s" % (row[1], row[0]))
+        else:
+            res = wrap_calls(conn, **args)
+            print("\n".join(res))
 
 if __name__ == '__main__':
     main()
