@@ -5,7 +5,7 @@ import os
 import sqlite3
 import sys
 from os import path
-from bottle import route, run, response
+from bottle import route, run, response, static_file
 from json import dumps
 from zodiacy.wrapper import wrap_calls, wrap_corpus
 from decorate import checkParams
@@ -35,7 +35,8 @@ def gen_corpus(**attrs):
 
 @route("/")
 def master():
-    return "Welcome to Zodiacy"
+    response.content_type = "text/plain"
+    return static_file("README.md", root=lib_path, mimetype="text/plain")
 
 
 @route("/q")
