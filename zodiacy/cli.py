@@ -67,6 +67,9 @@ _parser.add_argument('-r', '--random-keyword', dest='random_keyword', action='st
 _parser.add_argument('--ratings', dest='use_ratings', action='store_true',
                      help='weight states according to ratings')
 
+_parser.add_argument('--moon', dest='use_moon', action='store_true',
+                     help='Use current moon phase for the keyword selection')
+
 
 def main():
     args = vars(_parser.parse_args())

@@ -51,7 +51,7 @@ def master():
              prob_hmm_emissions=float,
              prob_synonyms_emission=float,
              markov_type=str,
-             nr_horoscopes=int, format=str,
+             nr_horoscopes=int, format=str, use_moon=bool,
              use_synonyms_emission=bool, order=int, order_emissions=int)
 def query(**kws):
     res = gen_wrapper(**kws)
@@ -85,6 +85,18 @@ def random_keyword():
 def list_keywords():
     response.content_type = 'application/json'
     return dumps(gen_corpus().list_keywords())
+
+
+@route("/moon")
+def moon():
+    response.content_type = "text/plain"
+    return gen_wrapper(use_moon=True)
+
+
+if __name__ == "__main__":
+    run(host='localhost', port=8080)
+
+app = bottle.default_app()
 
 if __name__ == "__main__":
     run(host='localhost', port=8080)
