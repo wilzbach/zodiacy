@@ -38,8 +38,6 @@ class Corpus():
         self.cursor = conn.cursor()
         self.synonym_influence = 0.2
         self.zodiac_sign_ordinal = self._get_zodiac_sign(self.zodiac_sign)
-        self._filters = []
-        self._filters_values = []
         self._table_name = "horoscopes"
 
     def __str__(self):
@@ -77,6 +75,10 @@ class Corpus():
 
     def _create_filters(self):
         """ builds all filters """
+
+        self._filters = []
+        self._filters_values = []
+
         if self.zodiac_sign is not None:
             self._add_filter("sign=?", self.zodiac_sign_ordinal)
 
@@ -201,7 +203,6 @@ class Corpus():
         if words is None or len(words) == 0:
             return []
         else:
-            print("w", [w.words for w in words])
             return words[0].words
 
     def get_present_synonyms(self):
