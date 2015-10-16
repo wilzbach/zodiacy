@@ -212,6 +212,9 @@ class Corpus():
         """
         self.synonyms = self._get_synonyms(self.keyword)
         logger.debug("found %d synonyms", len(self.synonyms))
-        self._execute_and_log('SELECT keyword FROM horoscopes WHERE keyword IN (%s) GROUP BY keyword' %
-                              ','.join('?' for _ in self.synonyms), tuple(self.synonyms))
-        return [row[0] for row in self.cursor if row is not None]
+        if len(self.synonyms) > 0:
+            self._execute_and_log('SELECT keyword FROM horoscopes WHERE keyword IN (%s) GROUP BY keyword' %
+                                  ','.join('?' for _ in self.synonyms), tuple(self.synonyms))
+            return [row[0] for row in self.cursor if row is not None]
+        else:
+            return []

@@ -2,6 +2,9 @@ import logging
 import warnings
 from .utils import weighted_choice
 
+__author__ = "Project Zodiacy"
+__copyright__ = "Copyright 2015, Project Zodiacy"
+
 wn_loaded = False
 
 
@@ -20,10 +23,6 @@ def load_wordnet():
 
         MAP_TOKEN_TO_WORDNET = {"VB": wn.VERB,
                                 "NN": wn.NOUN, "JJ": wn.ADJ, "RB": wn.ADV}
-
-__author__ = "Project Zodiacy"
-__copyright__ = "Copyright 2015, Project Zodiacy"
-
 
 TOKENS_FOR_SYNONYMS = ["VB", "JJ", "NN", "RB"]
 

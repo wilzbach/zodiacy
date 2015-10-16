@@ -55,7 +55,7 @@ e.g.
 
 - [`http://zodiacy.parce.li/q?sign=aries&order=2`](http://zodiacy.parce.li/q?sign=aries&order=2)
 
-- [`http://zodiacy.parce.li/q?sign=aries&use_synonym_emissions=1`](http://zodiacy.parce.li/q?sign=aries&use_synonym_emissions=1)
+- [`http://zodiacy.parce.li/q?sign=aries&use_synonyms_emission=1`](http://zodiacy.parce.li/q?sign=aries&use_synonyms_emission=1)
 
 - [`http://zodiacy.parce.li/q?keyword=patience&use_synonyms_generation=1`](http://zodiacy.parce.li/q?keyword=patience&use=synonyms_generation=1)
 
