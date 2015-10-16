@@ -3,3 +3,4 @@ astral>=0.8.1
 nltk>=3.0.4
 SQLAlchemy>=1.0.8
 bottle==0.12.8
+-e .
