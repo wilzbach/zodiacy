@@ -3,4 +3,4 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ZODIAC_DIR=${DIR}/../
-PYTHONPATH="${PYTHONPATH}:${ZODIAC_DIR}" python3 -m src.cli "$@"
+PYTHONPATH="${PYTHONPATH}:${ZODIAC_DIR}" python3 -m zodiacy.cli "$@"
