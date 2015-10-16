@@ -1,1 +1,1 @@
-web: python ./srv/serve.py $PORT
+web: gunicorn srv.serve:app --preload --timeout 90
