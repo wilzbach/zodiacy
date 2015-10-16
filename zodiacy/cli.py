@@ -39,7 +39,7 @@ _parser.add_argument('-o', '--order', dest='order', choices=range(1, 20),
 _parser.add_argument('--order-emissions', dest='order_emissions', choices=range(1, 20),
                      help='max. order to look back at prev. emissions (HMM)', type=int, default=1)
 
-_parser.add_argument('-n', '--horoscopes', dest='nr_horoscopes', choices=range(1, 10),
+_parser.add_argument('-n', '--horoscopes', dest='nr_horoscopes', choices=range(1, 11),
                      help='number of horoscopes', type=int, default=1)
 _parser.add_argument('-c', '--synonyms-generation', dest='use_synonyms_generation',
                      help='additionally use synonyms of keywords for generation', action='store_true')
